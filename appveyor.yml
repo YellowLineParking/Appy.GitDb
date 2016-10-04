@@ -1,0 +1,5 @@
+version: 1.0.{build}
+skip_tags: true
+build_script:
+- cmd: build ci
+test: off
