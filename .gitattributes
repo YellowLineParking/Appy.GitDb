@@ -1,0 +1,19 @@
+# Auto-detect text files so that they can be stored with LF endings
+# in github, and CRLF endings locally in Windows.
+* text=auto
+
+# Avoid potential misdetection of some common file types
+*.cs text
+*.csproj text
+*.Config text
+*.config text
+*.StyleCop text
+*.resx text
+
+*.eot binary
+*.woff binary
+*.nupkg binary
+
+# Apparently ReSharper uses LF line endings in its settings files,
+# so tell git that we know this to avoid warnings.
+*.DotSettings text eol=lf
