@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Server", "Ylp.GitDb.Server\Ylp.GitDb.Server.csproj", "{A9FAB943-9F28-49F8-82FB-0380A22FD683}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Core", "Ylp.GitDb.Core\Ylp.GitDb.Core.csproj", "{72AE8930-98EF-446D-8167-7DD251BCF4E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Remote", "Ylp.GitDb.Remote\Ylp.GitDb.Remote.csproj", "{3F7A7050-68CB-4D7F-9149-A59095EB78A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Local", "Ylp.GitDb.Local\Ylp.GitDb.Local.csproj", "{37D87FB6-E7D6-4217-B021-38CEA7233E6F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{46D2F58C-5500-4E79-B015-858594C6D8A0}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		build.bat = build.bat
+		build.ps1 = build.ps1
+		Functions.ps1 = Functions.ps1
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Tests", "Ylp.GitDb.Tests\Ylp.GitDb.Tests.csproj", "{1C2D86C4-8CAD-457E-B4F1-86A5523B3112}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9FAB943-9F28-49F8-82FB-0380A22FD683}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9FAB943-9F28-49F8-82FB-0380A22FD683}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9FAB943-9F28-49F8-82FB-0380A22FD683}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9FAB943-9F28-49F8-82FB-0380A22FD683}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72AE8930-98EF-446D-8167-7DD251BCF4E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72AE8930-98EF-446D-8167-7DD251BCF4E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72AE8930-98EF-446D-8167-7DD251BCF4E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72AE8930-98EF-446D-8167-7DD251BCF4E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F7A7050-68CB-4D7F-9149-A59095EB78A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F7A7050-68CB-4D7F-9149-A59095EB78A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F7A7050-68CB-4D7F-9149-A59095EB78A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F7A7050-68CB-4D7F-9149-A59095EB78A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37D87FB6-E7D6-4217-B021-38CEA7233E6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37D87FB6-E7D6-4217-B021-38CEA7233E6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37D87FB6-E7D6-4217-B021-38CEA7233E6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37D87FB6-E7D6-4217-B021-38CEA7233E6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C2D86C4-8CAD-457E-B4F1-86A5523B3112}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C2D86C4-8CAD-457E-B4F1-86A5523B3112}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C2D86C4-8CAD-457E-B4F1-86A5523B3112}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C2D86C4-8CAD-457E-B4F1-86A5523B3112}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
