@@ -12,10 +12,11 @@ namespace Ylp.GitDb.Tests.Local.Utils
 {
     public class WithRepo : IDisposable
     {
-        protected IGitDb Subject;
+        protected readonly IGitDb Subject;
         protected readonly string LocalPath = Path.GetTempPath() + Guid.NewGuid();
         protected readonly Repository Repo;
-        public WithRepo()
+
+        protected WithRepo()
         {
             Subject = new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>());
             Repo = new Repository(LocalPath);
