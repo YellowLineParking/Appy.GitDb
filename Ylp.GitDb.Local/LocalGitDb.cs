@@ -114,8 +114,9 @@ namespace Ylp.GitDb.Local
             {
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
                 addBlobToTree(document.Key, blob, tree);
-
-                return Task.FromResult(commitTree(branch, tree, getSignature(author), message));
+                var sha = commitTree(branch, tree, getSignature(author), message);
+                _logger.Log($"Added {document.Key} on branch {branch}");
+                return Task.FromResult(sha);
             }
         }
 
@@ -129,8 +130,9 @@ namespace Ylp.GitDb.Local
             {
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
                 deleteKeyFromTree(key, tree);
-
-                return Task.FromResult(commitTree(branch, tree, getSignature(author), message));
+                var sha = commitTree(branch, tree, getSignature(author), message);
+                _logger.Log($"Deleted {key} on branch {branch}");
+                return Task.FromResult(sha);
             }
         }
 
@@ -146,7 +148,7 @@ namespace Ylp.GitDb.Local
         public ITransaction CreateTransaction(string branch)
         {
             if (_branchesWithTransaction.Contains(branch))
-                throw new Exception("A transaction is already running for this branch");
+                throw new Exception($"A transaction is already in progress for branch {branch}");
 
             _branchesWithTransaction.Add(branch);
             var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
@@ -155,7 +157,7 @@ namespace Ylp.GitDb.Local
                 add: document =>
                 {
                     addBlobToTree(document.Key, addBlob(document.Value), tree);
-                    _logger.Log($"Added blob with key {document.Key} to transaction");
+                    _logger.Log($"Added blob with key {document.Key} to transaction on {branch}");
                     return Task.CompletedTask;
                 },
                 commit: (message, author) =>
@@ -164,19 +166,20 @@ namespace Ylp.GitDb.Local
                     {
                         var sha = commitTree(branch, tree, getSignature(author), message);
                         _branchesWithTransaction.Remove(branch);
-                        _logger.Log("Commited transaction");
+                        _logger.Log($"Commited transaction on {branch}");
                         return Task.FromResult(sha);
                     }
                 },
                 abort: () =>
                 {
                     _branchesWithTransaction.Remove(branch);
+                    _logger.Log($"Aborted transaction on {branch}");
                     return Task.CompletedTask;
                 },
                 delete: key =>
                 {
                     deleteKeyFromTree(key, tree);
-                    _logger.Log($"Removed blob with key {key} to transaction");
+                    _logger.Log($"Removed blob with key {key} in transaction  on {branch}");
                     return Task.CompletedTask;
                 });
         }
