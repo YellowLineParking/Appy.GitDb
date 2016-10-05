@@ -27,40 +27,47 @@ namespace Ylp.GitDb.Local
             _isOpen = true;
         }
 
+        T executeIfOpen<T>(Func<T> action)
+        {
+            if (_isOpen)
+                return action();
+            throw new Exception("Transaction is not open");
+        }
+
         public Task Add(Document document) =>
-            _add(document);
+            executeIfOpen(() => _add(document));
 
         public Task Add<T>(Document<T> document) =>
-            _add(Document.From(document));
+            executeIfOpen(() => _add(Document.From(document)));
 
         public Task Delete(string key) =>
-            _delete(key);
+            executeIfOpen(() => _delete(key));
 
         public Task DeleteMany(IEnumerable<string> keys) =>
-            Task.WhenAll(keys.Select(Delete));
+            executeIfOpen(() => Task.WhenAll(keys.Select(Delete)));
 
         public Task AddMany<T>(IEnumerable<Document<T>> documents) =>
-            Task.WhenAll(documents.Select(Add));
+            executeIfOpen(() => Task.WhenAll(documents.Select(Add)));
 
         public Task AddMany(IEnumerable<Document> documents) =>
-            Task.WhenAll(documents.Select(Add));
+            executeIfOpen(() => Task.WhenAll(documents.Select(Add)));
 
         public async Task<string> Commit(string message, Author author)
         {
-            var sha = await _commit(message, author);
+            var sha = await executeIfOpen(() => _commit(message, author));
             _isOpen = false;
             return sha;
         }
 
         public async Task Abort()
         {
-            await _abort();
+            await executeIfOpen(_abort);
             _isOpen = false;
         }
          
         public void Dispose()
         {
-            if (!_isOpen)
+            if (_isOpen)
                 Abort().Wait();
         }
     }
