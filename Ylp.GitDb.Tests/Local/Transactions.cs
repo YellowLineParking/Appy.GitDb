@@ -41,6 +41,28 @@ namespace Ylp.GitDb.Tests.Local
                 .ShouldBeEquivalentTo(_docs);
     }
 
+    public class DeletingItemsFromATransaction : WithRepo
+    {
+        const string Key = "Key";
+        const string Value = "Value";
+        const string Branch = "master";
+        readonly Author _author = new Author("author", "author@mail.com");
+        public DeletingItemsFromATransaction()
+        {
+            Subject.Save(Branch, "msg", new Document {Key = Key, Value = Value}, _author).Wait();
+
+            using (var t = Subject.CreateTransaction(Branch))
+            {
+                t.Delete(Key).Wait();
+                t.Commit("Deleted file", _author);
+            }
+        }
+
+        [Fact]
+        public void RemovesTheItemFromTheBranch() =>
+            Subject.Get(Branch, Key).Result.Should().BeNull();
+    }
+
     public class OpeningTwoTransactionsSimultaneouslyOnTheSameBranch : WithRepo
     {
         readonly Exception _result;
@@ -76,5 +98,84 @@ namespace Ylp.GitDb.Tests.Local
         [Fact]
         public void DoesNotThrowAnException() =>
             _result.Should().BeNull();
+    }
+
+    public class AbortingATransaction : WithRepo
+    {
+        const string Branch = "master";
+        const string Key = "key";
+        public AbortingATransaction()
+        {
+            using (var t = Subject.CreateTransaction("master"))
+            {
+                t.Add(new Document {Key = Key, Value = "value"});
+                t.Abort();
+            }
+        }
+
+        [Fact]
+        public void DoesNotCreateACommit() =>
+            Subject.Get(Branch, Key).Result.Should().BeNull();
+    }
+
+    public class AddingAFileToAnAbortedTransaction : WithRepo
+    {
+        const string Branch = "master";
+        const string Key = "key";
+        readonly Exception _exception;
+        public AddingAFileToAnAbortedTransaction()
+        {
+            using (var t = Subject.CreateTransaction(Branch))
+            {
+                t.Add(new Document { Key = Key, Value = "value" });
+                t.Abort();
+                _exception = Catch<Exception>(() => t.Commit("message", new Author("name", "email")).Wait());
+            }
+        }
+
+        [Fact]
+        public void DoesNotCreateACommit() =>
+            Subject.Get(Branch, Key).Result.Should().BeNull();
+
+        [Fact]
+        public void ThrowsAnException() =>
+            _exception.Should().NotBeNull();
+    }
+
+    public class SavingAFileWhileATransactionIsInProgress : WithRepo
+    {
+        const string Branch = "master";
+        const string Key = "key";
+        readonly Exception _exception;
+        public SavingAFileWhileATransactionIsInProgress()
+        {
+            using (var t = Subject.CreateTransaction(Branch))
+            {
+                _exception = Catch<Exception>(() =>Subject.Save(Branch, "msg", new Document {Key = Key, Value = "value"}, new Author("name", "email")).Wait());
+            }
+        }
+
+        [Fact]
+        public void DoesNotCreateACommit() =>
+            Subject.Get(Branch, Key).Result.Should().BeNull();
+
+        [Fact]
+        public void ThrowsAnException() =>
+           _exception.Should().NotBeNull();
+    }
+
+    public class CommitingATransactionWithoutFiles : WithRepo
+    {
+        const string Branch = "master";
+        const string Message = "message";
+        public CommitingATransactionWithoutFiles()
+        {
+            using (var t = Subject.CreateTransaction(Branch))
+                t.Commit(Message, new Author("name", "email"));
+        }
+
+        [Fact]
+        public void DoesNotCreateACommit() =>
+            Repo.Branches[Branch].Tip.Message.Should().NotBe(Message);
     }
 }
