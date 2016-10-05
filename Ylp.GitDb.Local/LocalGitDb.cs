@@ -65,19 +65,14 @@ namespace Ylp.GitDb.Local
 
         string commitTree(string branch, TreeDefinition treeDefinition, Signature signature, string message, bool commitEmpty = false)
         {
-            var branchObj = _repo.Branches.Any(br => br.FriendlyName == branch)
-                               ? _repo.Branches[branch]
-                               : null;
+            var branchObj = _repo.Branches.SingleOrDefault(b => b.FriendlyName == branch);
 
             var previousCommit = branchObj?.Tip;
-            var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
-
             var tree = _repo.ObjectDatabase.CreateTree(treeDefinition);
-            var result = _repo.Diff.Compare<TreeChanges>(previousCommit?.Tree, tree);
-
-            if (!result.Added.Any() && !result.Conflicted.Any() && !result.Copied.Any() && !result.Deleted.Any() && !result.Modified.Any() && !result.Renamed.Any() && !result.TypeChanged.Any() && !commitEmpty)
+            if (!_repo.HasChanges(previousCommit?.Tree, tree) && !commitEmpty)
                 return string.Empty;
 
+            var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
             var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
 
             if (branchObj == null)
@@ -91,29 +86,22 @@ namespace Ylp.GitDb.Local
         public Task<string> Get(string branch, string key) => 
             Task.FromResult((_repo.Branches[branch].Tip[key]?.Target as Blob)?.GetContentText());
 
-        public async Task<T> Get<T>(string branch, string key) where T : class
-        {
-            var value = await Get(branch, key);
-            return value != null 
-                ? JsonConvert.DeserializeObject<T>(value)
-                : null;
-        }
+        public async Task<T> Get<T>(string branch, string key) where T : class =>
+            (await Get(branch, key))?.As<T>();
 
         public async Task<IReadOnlyCollection<T>> GetFiles<T>(string branch, string key) =>
             (await GetFiles(branch, key)).Select(JsonConvert.DeserializeObject<T>)
-                                            .ToArray();
+                                         .ToArray();
 
-        public Task<IReadOnlyCollection<string>> GetFiles(string branch, string key)
-        {
-            var tree = _repo.Branches[branch].Tip[key].Target as Tree;
-            return Task.FromResult((IReadOnlyCollection<string>) (
-                tree?.Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
+        public Task<IReadOnlyCollection<string>> GetFiles(string branch, string key) =>
+            Task.FromResult((IReadOnlyCollection<string>) (
+                (_repo.Branches[branch].Tip[key].Target as Tree)?
+                     .Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
                      .Select(entry => entry.Target)
                      .Cast<Blob>()
                      .Select(blob => blob.GetContentText())
                      .ToList() ?? 
                 new List<string>()));
-        }
 
        
 
@@ -146,17 +134,11 @@ namespace Ylp.GitDb.Local
             }
         }
 
-        public Task Tag(Reference reference)
-        {
-            _repo.Tags.Add(reference.Name, reference.Pointer);
-            return Task.CompletedTask;
-        }
+        public Task Tag(Reference reference) =>
+            Task.FromResult(_repo.Tags.Add(reference.Name, reference.Pointer));
 
-        public Task CreateBranch(Reference reference)
-        {
-            _repo.Branches.Add(reference.Name, reference.Pointer);
-            return Task.CompletedTask;
-        }
+        public Task CreateBranch(Reference reference) =>
+            Task.FromResult(_repo.Branches.Add(reference.Name, reference.Pointer));
 
         public Task<IEnumerable<string>> GetAllBranches() =>
             Task.FromResult(_repo.Branches.Select(b => b.FriendlyName));
