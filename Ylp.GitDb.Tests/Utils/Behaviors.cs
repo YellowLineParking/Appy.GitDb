@@ -4,7 +4,7 @@ using LibGit2Sharp;
 using Newtonsoft.Json;
 using Ylp.GitDb.Core.Model;
 
-namespace Ylp.GitDb.Tests.Local.Utils
+namespace Ylp.GitDb.Tests.Utils
 {
     public static class Behaviors
     {
