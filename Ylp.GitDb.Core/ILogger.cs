@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace GitTest.Core
+namespace Ylp.GitDb.Core
 {
     public interface ILogger
     {
