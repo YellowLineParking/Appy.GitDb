@@ -1,8 +1,9 @@
+using System.Threading.Tasks;
 using Xunit;
 using Ylp.GitDb.Core.Model;
-using Ylp.GitDb.Tests.Local.Utils;
+using Ylp.GitDb.Tests.Utils;
 
-namespace Ylp.GitDb.Tests.Local
+namespace Ylp.GitDb.Tests
 {
     public class SavingATypedValue : WithRepo
     {
@@ -10,12 +11,9 @@ namespace Ylp.GitDb.Tests.Local
         const string Branch = "master";
         const string Key = "Key";
         readonly TestClass _value = new TestClass("value");
-        readonly Author _author = new Author("author", "author@mail.com");
-
-        public SavingATypedValue()
-        {
-            Subject.Save(Branch, Message, new Document<TestClass>{Key = Key, Value = _value}, _author);
-        }
+        
+        protected override Task Because() =>
+            Subject.Save(Branch, Message, new Document<TestClass>{Key = Key, Value = _value}, Author);
 
         [Fact]
         public void CreatesACommitWithTheCorrectData() =>
@@ -23,7 +21,7 @@ namespace Ylp.GitDb.Tests.Local
 
         [Fact]
         public void CreatesACommitWithTheCorrectAuthor() =>
-          Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, _author);
+            Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, Author);
     }
 
     public class SavingAStringValue : WithRepo
@@ -32,12 +30,9 @@ namespace Ylp.GitDb.Tests.Local
         const string Branch = "master";
         const string Key = "Key";
         const string Value = "Test Value";
-        readonly Author _author = new Author("author", "author@mail.com");
 
-        public SavingAStringValue()
-        {
-            Subject.Save(Branch, Message, new Document { Key = Key, Value = Value }, _author);
-        }
+        protected override Task Because() =>
+            Subject.Save(Branch, Message, new Document { Key = Key, Value = Value }, Author);
 
         [Fact]
         public void CreatesACommitWithTheCorrectData() =>
@@ -45,6 +40,6 @@ namespace Ylp.GitDb.Tests.Local
 
         [Fact]
         public void CreatesACommitWithTheCorrectAuthor() =>
-           Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, _author);
+           Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, Author);
     }
 }

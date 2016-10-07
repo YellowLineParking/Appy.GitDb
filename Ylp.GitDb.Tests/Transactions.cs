@@ -1,38 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using LibGit2Sharp;
 using Xunit;
 using Ylp.GitDb.Core.Model;
-using Ylp.GitDb.Tests.Local.Utils;
-using static Ylp.GitDb.Tests.Local.Utils.Utils;
+using Ylp.GitDb.Tests.Utils;
 using Reference = Ylp.GitDb.Core.Model.Reference;
+using static Ylp.GitDb.Tests.Utils.Utils;
 
-namespace Ylp.GitDb.Tests.Local
+namespace Ylp.GitDb.Tests
 {
     public class AddingItemsInATransaction : WithRepo
     {
-        readonly List<Document> _docs;
+        readonly IEnumerable<Document> _docs = Enumerable.Range(0, 3)
+                                                         .Select(i => new Document { Key = i.ToString(), Value = i.ToString() });
         const string Message = "added a file";
         const string Branch = "master";
-        readonly Author _author = new Author("author", "author@mail.com");
-        public AddingItemsInATransaction()
-        {
-            _docs = Enumerable.Range(0, 3)
-                              .Select(i => new Document {Key = i.ToString(), Value = i.ToString()})
-                              .ToList();
 
+        protected override async Task Because()
+        {
             using (var t = Subject.CreateTransaction(Branch))
             {
-                t.AddMany(_docs);
-                t.Commit(Message, _author);
+                await t.AddMany(_docs);
+                await t.Commit(Message, Author);
             }
         }
 
         [Fact]
         public void CreatesACommitWithTheCorrectAuthor() =>
-           Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, _author);
+           Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, Author);
 
         [Fact]
         public void CreatesASingleCommitWithAllKeys() =>
@@ -46,32 +44,33 @@ namespace Ylp.GitDb.Tests.Local
         const string Key = "Key";
         const string Value = "Value";
         const string Branch = "master";
-        readonly Author _author = new Author("author", "author@mail.com");
-        public DeletingItemsFromATransaction()
+
+        protected override async Task Because()
         {
-            Subject.Save(Branch, "msg", new Document {Key = Key, Value = Value}, _author).Wait();
+            await Subject.Save(Branch, "msg", new Document {Key = Key, Value = Value}, Author);
 
             using (var t = Subject.CreateTransaction(Branch))
             {
-                t.Delete(Key).Wait();
-                t.Commit("Deleted file", _author);
+                await t.Delete(Key);
+                await t.Commit("Deleted file", Author);
             }
         }
 
         [Fact]
-        public void RemovesTheItemFromTheBranch() =>
-            Subject.Get(Branch, Key).Result.Should().BeNull();
+        public async Task RemovesTheItemFromTheBranch() =>
+            (await Subject.Get(Branch, Key)).Should().BeNull();
     }
 
     public class OpeningTwoTransactionsSimultaneouslyOnTheSameBranch : WithRepo
     {
-        readonly Exception _result;
+        Exception _result;
         const string Branch = "master";
 
-        public OpeningTwoTransactionsSimultaneouslyOnTheSameBranch()
+        protected override Task Because()
         {
             using (Subject.CreateTransaction(Branch))
                 _result = Catch<Exception>(() => Subject.CreateTransaction(Branch));
+            return base.Because();
         }
 
         [Fact]
@@ -81,13 +80,13 @@ namespace Ylp.GitDb.Tests.Local
 
     public class OpeningTwoTransactionsSimultaneouslyOnDifferentBranches : WithRepo
     {
-        readonly Exception _result;
+        Exception _result;
         const string Branch = "master";
         const string Branch2 = "develop";
 
-        public OpeningTwoTransactionsSimultaneouslyOnDifferentBranches()
+        protected override async Task Because()
         {
-            Subject.CreateBranch(new Reference() {Name = Branch2, Pointer = Branch});
+            await Subject.CreateBranch(new Reference {Name = Branch2, Pointer = Branch});
             using (Subject.CreateTransaction(Branch))
                 _result = Catch<Exception>(() =>
                 {
@@ -104,12 +103,12 @@ namespace Ylp.GitDb.Tests.Local
     {
         const string Branch = "master";
         const string Key = "key";
-        public AbortingATransaction()
+        protected override async Task Because()
         {
             using (var t = Subject.CreateTransaction("master"))
             {
-                t.Add(new Document {Key = Key, Value = "value"});
-                t.Abort();
+                await t.Add(new Document {Key = Key, Value = "value"});
+                await t.Abort();
             }
         }
 
@@ -122,14 +121,14 @@ namespace Ylp.GitDb.Tests.Local
     {
         const string Branch = "master";
         const string Key = "key";
-        readonly Exception _exception;
-        public AddingAFileToAnAbortedTransaction()
+        Exception _exception;
+        protected override async Task Because()
         {
             using (var t = Subject.CreateTransaction(Branch))
             {
-                t.Add(new Document { Key = Key, Value = "value" });
-                t.Abort();
-                _exception = Catch<Exception>(() => t.Commit("message", new Author("name", "email")).Wait());
+                await t.Add(new Document { Key = Key, Value = "value" });
+                await t.Abort();
+                _exception = await Catch<Exception>(() => t.Commit("message",Author));
             }
         }
 
@@ -146,13 +145,11 @@ namespace Ylp.GitDb.Tests.Local
     {
         const string Branch = "master";
         const string Key = "key";
-        readonly Exception _exception;
-        public SavingAFileWhileATransactionIsInProgress()
+        Exception _exception;
+        protected override async Task Because()
         {
             using (var t = Subject.CreateTransaction(Branch))
-            {
-                _exception = Catch<Exception>(() =>Subject.Save(Branch, "msg", new Document {Key = Key, Value = "value"}, new Author("name", "email")).Wait());
-            }
+                _exception = await Catch<Exception>(() => Subject.Save(Branch, "msg", new Document {Key = Key, Value = "value"}, Author));
         }
 
         [Fact]
@@ -168,10 +165,10 @@ namespace Ylp.GitDb.Tests.Local
     {
         const string Branch = "master";
         const string Message = "message";
-        public CommitingATransactionWithoutFiles()
+        protected override async Task Because()
         {
             using (var t = Subject.CreateTransaction(Branch))
-                t.Commit(Message, new Author("name", "email"));
+                await t.Commit(Message, Author);
         }
 
         [Fact]
