@@ -2,12 +2,13 @@
 using System.Linq;
 using FluentAssertions;
 using Xunit;
-using Ylp.GitDb.Tests.Local.Utils;
+using Ylp.GitDb.Tests.Utils;
 
-namespace Ylp.GitDb.Tests.Local
+namespace Ylp.GitDb.Tests
 {
     public class CreatingANewLocalGitDbClientInAnEmptyPath : WithRepo
     {
+
         [Fact]
         public void InitializesTheRepository() =>
             Directory.Exists($@"{LocalPath}\.git").Should().BeTrue();

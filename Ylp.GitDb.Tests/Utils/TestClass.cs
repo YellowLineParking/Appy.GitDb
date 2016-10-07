@@ -1,4 +1,4 @@
-﻿namespace Ylp.GitDb.Tests.Local.Utils
+﻿namespace Ylp.GitDb.Tests.Utils
 {
     class TestClass
     {

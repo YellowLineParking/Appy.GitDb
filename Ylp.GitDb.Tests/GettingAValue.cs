@@ -1,19 +1,21 @@
-﻿using FluentAssertions;
+﻿using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 using Ylp.GitDb.Core.Model;
-using Ylp.GitDb.Tests.Local.Utils;
+using Ylp.GitDb.Tests.Utils;
 
-namespace Ylp.GitDb.Tests.Local
+namespace Ylp.GitDb.Tests
 {
     public class GettingAStringValue : WithRepo
     {
         const string Key = "key";
         const string Value = "value";
-        readonly string _result;
-        public GettingAStringValue()
+        string _result;
+        
+        protected override async Task Because()
         {
-            Subject.Save("master", "message", new Document {Key = Key, Value = Value}, new Author("author", "author@mail.com"));
-            _result = Subject.Get("master", Key).Result;
+            await Subject.Save("master", "message", new Document {Key = Key, Value = Value}, Author);
+            _result = await Subject.Get("master", Key);
         }
 
         [Fact]
@@ -25,11 +27,11 @@ namespace Ylp.GitDb.Tests.Local
     {
         const string Key = "key";
         readonly TestClass _value = new TestClass("value");
-        readonly TestClass _result;
-        public GettingATypedValue()
+        TestClass _result;
+        protected override async Task Because()
         {
-            Subject.Save("master", "message", new Document<TestClass> { Key = Key, Value = _value }, new Author("author", "author@mail.com"));
-            _result = Subject.Get<TestClass>("master", Key).Result;
+            await Subject.Save("master", "message", new Document<TestClass> { Key = Key, Value = _value }, Author);
+            _result = await Subject.Get<TestClass>("master", Key);
         }
 
         [Fact]
