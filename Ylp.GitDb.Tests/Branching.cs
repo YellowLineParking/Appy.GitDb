@@ -1,21 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
 using Ylp.GitDb.Core.Model;
-using Ylp.GitDb.Tests.Local.Utils;
+using Ylp.GitDb.Tests.Utils;
 
-namespace Ylp.GitDb.Tests.Local
+namespace Ylp.GitDb.Tests
 {
     public class BranchingFromABranch : WithRepo
     {
         const string Branch = "master";
         const string BranchName = "MyTag";
 
-        public BranchingFromABranch()
+        protected override async Task Because()
         {
-            Subject.Save(Branch, "msg", new Document { Key = "key", Value = "value" }, new Author("author", "author@mail.com"));
-            Subject.CreateBranch(new Reference {Name = BranchName, Pointer = Branch}).Wait();
+            await Subject.Save(Branch, "msg", new Document { Key = "key", Value = "value" }, Author);
+            await Subject.CreateBranch(new Reference { Name = BranchName, Pointer = Branch });
         }
 
         [Fact]
@@ -26,17 +27,17 @@ namespace Ylp.GitDb.Tests.Local
     public class BranchingFromACommit : WithRepo
     {
         const string BranchName = "MyTag";
-        readonly string _sha;
+        string _sha;
 
-        public BranchingFromACommit()
+        protected override async Task Because()
         {
-            Subject.Save("master", "msg", new Document { Key = "key", Value = "value" }, new Author("author", "author@mail.com"));
+            await Subject.Save("master", "msg", new Document { Key = "key", Value = "value" }, Author);
             _sha = Repo.Branches["master"].Tip.Sha;
-            Subject.CreateBranch(new Reference { Name = BranchName, Pointer = _sha }).Wait();
+            await Subject.CreateBranch(new Reference { Name = BranchName, Pointer = _sha });
         }
 
         [Fact]
-        public void CreatesANewTagPointingAtTheCommit() =>
+        public void CreatesANewBranchPointingAtTheCommit() =>
             Repo.Branches[BranchName].Tip.Sha.Should().Be(_sha);
     }
 
@@ -45,11 +46,11 @@ namespace Ylp.GitDb.Tests.Local
         const string TagName = "MyFirstTag";
         const string BranchName = "MySecondTag";
 
-        public BranchingFromATag()
+        protected override async Task Because()
         {
-            Subject.Save("master", "msg", new Document { Key = "key", Value = "value" }, new Author("author", "author@mail.com"));
-            Subject.Tag(new Reference { Name = TagName, Pointer = Repo.Branches["master"].Tip.Sha }).Wait();
-            Subject.CreateBranch(new Reference { Name = BranchName, Pointer = TagName }).Wait();
+            await Subject.Save("master", "msg", new Document { Key = "key", Value = "value" }, Author);
+            await Subject.Tag(new Reference { Name = TagName, Pointer = Repo.Branches["master"].Tip.Sha });
+            await Subject.CreateBranch(new Reference { Name = BranchName, Pointer = TagName });
         }
 
         [Fact]
@@ -60,13 +61,13 @@ namespace Ylp.GitDb.Tests.Local
     public class GettingAllBranches : WithRepo
     {
         readonly List<string> _branches = Enumerable.Range(0, 5).Select(i => "branch" + i).ToList();
-        readonly List<string> _result;
+        List<string> _result;
 
-        public GettingAllBranches()
+        protected override async Task Because()
         {
-            _branches.ForEach(b => Subject.CreateBranch(new Reference {Name = b, Pointer = "master"}).Wait());
-            _result = Subject.GetAllBranches().Result.ToList();
-            _result.Remove("master");
+            await Task.WhenAll(_branches.Select(b => Subject.CreateBranch(new Reference { Name = b, Pointer = "master" })));
+            _result = (await Subject.GetAllBranches()).ToList();
+            _branches.Add("master");
         }
 
         [Fact]
