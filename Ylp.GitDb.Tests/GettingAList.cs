@@ -18,10 +18,8 @@ namespace Ylp.GitDb.Tests
         const string Directory = "directory";
         protected override async Task Because()
         {
-
             await Task.WhenAll(_rootDocuments.Select(d => Subject.Save("master", "message", new Document { Key = d.Key, Value = d.Value }, Author)));
             await Task.WhenAll(_subDirectoryDocuments.Select(d => Subject.Save("master", "message", new Document { Key = d.Key, Value = d.Value }, Author)));
-
             _result = await Subject.GetFiles("master", Directory);
         }
 

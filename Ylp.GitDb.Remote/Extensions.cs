@@ -12,12 +12,10 @@ namespace GitTest.RemoteGitDb
 {
     static class Extensions
     {
-        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> items, int maxItems)
-        {
-            return items.Select((item, inx) => new { item, inx })
-                        .GroupBy(x => x.inx / maxItems)
-                        .Select(g => g.Select(x => x.item));
-        }
+        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> items, int maxItems) =>
+            items.Select((item, inx) => new { item, inx })
+                 .GroupBy(x => x.inx / maxItems)
+                 .Select(g => g.Select(x => x.item));
 
         public static async Task<T> GetAsync<T>(this HttpClient client, string url) where T : class
         {

@@ -8,7 +8,6 @@ namespace Ylp.GitDb.Tests
 {
     public class CreatingANewLocalGitDbClientInAnEmptyPath : WithRepo
     {
-
         [Fact]
         public void InitializesTheRepository() =>
             Directory.Exists($@"{LocalPath}\.git").Should().BeTrue();

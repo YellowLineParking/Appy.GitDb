@@ -24,9 +24,6 @@ namespace Ylp.GitDb.Server
                 _container = builder.Build(),
                 _url = url
             };
-            
-            
-            
             LoggingMiddleware.Logger = serverLog;
             return app;
         }
