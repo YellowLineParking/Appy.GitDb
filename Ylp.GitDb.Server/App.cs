@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
@@ -28,8 +29,8 @@ namespace Ylp.GitDb.Server
             return app;
         }
 
-        public IDisposable Start() =>
-            WebApp.Start<App>(_url);
+        public IDisposable Start() => 
+            WebApp.Start(new StartOptions(_url), Configuration);
 
         public void Configuration(IAppBuilder app)
         {
