@@ -104,7 +104,6 @@ function Convert-Project($projectName, $config, $out) {
 }
 
 function Execute-Xunit($projectName, $config, $out){
-	"Called execute xunit"
 	New-Item $out -Type directory -Force | Out-Null
 
 	$xunitRunnerPath = Get-RequiredPackagePath XUnit.Runner.Console "$projectName"
