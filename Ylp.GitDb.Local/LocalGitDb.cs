@@ -145,7 +145,7 @@ namespace Ylp.GitDb.Local
         public Task<IEnumerable<string>> GetAllBranches() =>
             Task.FromResult(_repo.Branches.Select(b => b.FriendlyName));
 
-        public ITransaction CreateTransaction(string branch)
+        public Task<ITransaction> CreateTransaction(string branch)
         {
             if (_branchesWithTransaction.Contains(branch))
                 throw new Exception($"A transaction is already in progress for branch {branch}");
@@ -153,7 +153,7 @@ namespace Ylp.GitDb.Local
             _branchesWithTransaction.Add(branch);
             var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
 
-            return new Transaction(
+            return Task.FromResult((ITransaction)new Transaction(
                 add: document =>
                 {
                     addBlobToTree(document.Key, addBlob(document.Value), tree);
@@ -181,7 +181,7 @@ namespace Ylp.GitDb.Local
                     deleteKeyFromTree(key, tree);
                     _logger.Log($"Removed blob with key {key} in transaction  on {branch}");
                     return Task.CompletedTask;
-                });
+                }));
         }
 
         public void Dispose() =>

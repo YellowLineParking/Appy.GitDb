@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
@@ -49,7 +50,7 @@ namespace Ylp.GitDb.Tests.Watcher
                    .WithArgs<BranchChanged>(args => args.BranchName == "master" &&
                                                     args.Modified.Any(item => item.Key == "key" &&
                                                                               item.Value == "value2" &&
-                                                                              item.OldValue == "value"));
+                                                                              item.OldValue == "value"));   
     }
 
     public class RenamingAFile : WithWatcher
@@ -59,7 +60,7 @@ namespace Ylp.GitDb.Tests.Watcher
 
         protected override async Task Because()
         {
-            using (var t = GitDb.CreateTransaction("master"))
+            using (var t = await GitDb.CreateTransaction("master"))
             {
                 await t.Add(new Document {Key = "subdir\\key", Value = "value"});
                 await t.Delete("key");
