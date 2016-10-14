@@ -7,6 +7,7 @@ using Castle.Core.Internal;
 using FluentAssertions;
 using LibGit2Sharp;
 using Moq.AutoMock;
+using Xunit;
 using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
@@ -14,25 +15,13 @@ using Ylp.GitDb.Local;
 
 namespace Ylp.GitDb.Tests.Utils
 {
-    public abstract class WithWatcher : IDisposable
+    public abstract class WithWatcher : IAsyncLifetime
     {
-        protected readonly GitDb.Watcher.Watcher Subject;
+        protected GitDb.Watcher.Watcher Subject;
         protected readonly string LocalPath = Path.GetTempPath() + Guid.NewGuid();
-        protected readonly IGitDb GitDb;
-        protected readonly Repository Repo;
+        protected IGitDb GitDb;
+        protected Repository Repo;
         protected readonly Author Author = new Author("author", "author@mail.com");
-
-        protected WithWatcher()
-        {
-            GitDb = new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>());
-            Repo = new Repository(LocalPath);
-            Setup().Wait();
-            Subject = new GitDb.Watcher.Watcher(LocalPath, new AutoMocker().Get<ILogger>(), 5);
-            Subject.MonitorEvents();
-            Subject.Start();
-            Because().Wait();
-            Thread.Sleep(100);
-        }
 
         protected virtual Task Setup() => Task.CompletedTask;
 
@@ -47,12 +36,26 @@ namespace Ylp.GitDb.Tests.Utils
 
             Directory.Delete(directory);
         }
-        public void Dispose()
+
+        public async Task InitializeAsync()
+        {
+            GitDb = new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>());
+            Repo = new Repository(LocalPath);
+            await Setup();
+            Subject = new GitDb.Watcher.Watcher(LocalPath, new AutoMocker().Get<ILogger>(), 1);
+            Subject.MonitorEvents();
+            Subject.Start();
+            await Because();
+            Thread.Sleep(150);
+        }
+
+        public Task DisposeAsync()
         {
             Repo.Dispose();
             Subject.Dispose();
             GitDb.Dispose();
             deleteReadOnlyDirectory(LocalPath);
+            return Task.CompletedTask;
         }
     }
 }

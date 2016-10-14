@@ -9,6 +9,7 @@ using Castle.Core.Internal;
 using LibGit2Sharp;
 using Microsoft.Owin.Testing;
 using Moq.AutoMock;
+using Xunit;
 using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
@@ -19,38 +20,23 @@ using Ylp.GitDb.Server.Auth;
 
 namespace Ylp.GitDb.Tests.Utils
 {
-    public abstract class WithRepo : IDisposable
+    public abstract class WithRepo : IAsyncLifetime
     {
-        protected readonly IGitDb Subject;
+        protected IGitDb Subject;
         protected readonly string LocalPath = Path.GetTempPath() + Guid.NewGuid();
-        protected readonly Repository Repo;
+        protected Repository Repo;
         protected readonly Author Author = new Author("author", "author@mail.com");
-        readonly TestServer _server;
-        readonly HttpClient _client;
+        TestServer _server;
+        HttpClient _client;
 
-        protected static readonly User Admin = new User { UserName = "admin", Password = "admin", Roles = new[] { "admin", "read", "write" } };
+        protected static readonly User Admin = new User {UserName = "admin", Password = "admin", Roles = new[] {"admin", "read", "write"}};
         protected static readonly User ReadOnly = new User { UserName = "readonly", Password = "readonly", Roles = new[] { "read" } };
         protected static readonly User WriteOnly = new User { UserName = "writeonly", Password = "writeonly", Roles = new[] { "write" } };
         protected static readonly User ReadWrite = new User { UserName = "readwrite", Password = "readwrite", Roles = new[] { "read", "write" } };
-
+        
         protected static readonly User None = new User { UserName = "", Password = "", Roles = new string[0] };
 
-        readonly IEnumerable<User> _users = new List<User> { Admin, ReadOnly, WriteOnly, ReadWrite };
-
-        protected void WithUser(User user) =>
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user.UserName}:{user.Password}")));
-
-        protected WithRepo()
-        {
-            const string url = "http://localhost"; // this is a dummy url, requests are in-memory, not over the network
-            var app = App.Create(url, new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>()), new AutoMocker().Get<ILogger>(), _users);
-            _server = TestServer.Create(app.Configuration);
-            _client = _server.HttpClient;
-            WithUser(Admin);
-            Subject = new RemoteGitDb(_client, url);
-            Repo = new Repository(LocalPath);
-            Because().Wait();
-        }
+        readonly IEnumerable<User> _users = new List<User> {Admin, ReadOnly, WriteOnly, ReadWrite};
 
         protected virtual Task Because() => Task.CompletedTask;
 
@@ -63,12 +49,29 @@ namespace Ylp.GitDb.Tests.Utils
 
             Directory.Delete(directory);
         }
-        public void Dispose()
+
+        protected void WithUser(User user) =>
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user.UserName}:{user.Password}")));
+       
+        public async Task InitializeAsync()
+        {
+            const string url = "http://localhost"; // this is a dummy url, requests are in-memory, not over the network
+            var app = App.Create(url, new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>()), new AutoMocker().Get<ILogger>(), _users);
+            _server = TestServer.Create(app.Configuration);
+            _client = _server.HttpClient;
+            WithUser(Admin);     
+            Subject = new RemoteGitDb(_client, url);
+            Repo = new Repository(LocalPath);
+            await Because();
+        }
+
+        public Task DisposeAsync()
         {
             _server.Dispose();
             Subject.Dispose();
             Repo.Dispose();
             deleteReadOnlyDirectory(LocalPath);
+            return Task.CompletedTask;
         }
     }
 }
