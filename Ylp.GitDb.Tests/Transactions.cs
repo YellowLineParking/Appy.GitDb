@@ -21,7 +21,7 @@ namespace Ylp.GitDb.Tests
 
         protected override async Task Because()
         {
-            using (var t = Subject.CreateTransaction(Branch))
+            using (var t = await Subject.CreateTransaction(Branch))
             {
                 await t.AddMany(_docs);
                 await t.Commit(Message, Author);
@@ -49,7 +49,7 @@ namespace Ylp.GitDb.Tests
         {
             await Subject.Save(Branch, "msg", new Document {Key = Key, Value = Value}, Author);
 
-            using (var t = Subject.CreateTransaction(Branch))
+            using (var t = await Subject.CreateTransaction(Branch))
             {
                 await t.Delete(Key);
                 await t.Commit("Deleted file", Author);
@@ -66,11 +66,10 @@ namespace Ylp.GitDb.Tests
         Exception _result;
         const string Branch = "master";
 
-        protected override Task Because()
+        protected override async Task Because()
         {
-            using (Subject.CreateTransaction(Branch))
-                _result = Catch<Exception>(() => Subject.CreateTransaction(Branch));
-            return base.Because();
+            using (await Subject.CreateTransaction(Branch))
+                _result = await Catch<Exception>(() => Subject.CreateTransaction(Branch));
         }
 
         [Fact]
@@ -87,10 +86,10 @@ namespace Ylp.GitDb.Tests
         protected override async Task Because()
         {
             await Subject.CreateBranch(new Reference {Name = Branch2, Pointer = Branch});
-            using (Subject.CreateTransaction(Branch))
-                _result = Catch<Exception>(() =>
+            using (await Subject.CreateTransaction(Branch))
+                _result = await Catch<Exception>(async () =>
                 {
-                    using (Subject.CreateTransaction(Branch2)) {}
+                    using (await Subject.CreateTransaction(Branch2)) {}
                 });
         }
 
@@ -105,7 +104,7 @@ namespace Ylp.GitDb.Tests
         const string Key = "key";
         protected override async Task Because()
         {
-            using (var t = Subject.CreateTransaction("master"))
+            using (var t = await Subject.CreateTransaction("master"))
             {
                 await t.Add(new Document {Key = Key, Value = "value"});
                 await t.Abort();
@@ -124,7 +123,7 @@ namespace Ylp.GitDb.Tests
         Exception _exception;
         protected override async Task Because()
         {
-            using (var t = Subject.CreateTransaction(Branch))
+            using (var t = await Subject.CreateTransaction(Branch))
             {
                 await t.Add(new Document { Key = Key, Value = "value" });
                 await t.Abort();
@@ -167,7 +166,7 @@ namespace Ylp.GitDb.Tests
         const string Message = "message";
         protected override async Task Because()
         {
-            using (var t = Subject.CreateTransaction(Branch))
+            using (var t = await Subject.CreateTransaction(Branch))
                 await t.Commit(Message, Author);
         }
 
