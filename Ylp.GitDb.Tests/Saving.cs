@@ -1,7 +1,10 @@
+using System;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Tests.Utils;
+using static Ylp.GitDb.Tests.Utils.Utils;
 
 namespace Ylp.GitDb.Tests
 {
@@ -41,5 +44,19 @@ namespace Ylp.GitDb.Tests
         [Fact]
         public void CreatesACommitWithTheCorrectAuthor() =>
            Repo.Branches[Branch].Tip.HasTheCorrectMetaData(Message, Author);
+    }
+
+    public class SavingWithoutAKey : WithRepo
+    {
+        const string Message = "added a file";
+        const string Branch = "master";
+        const string Value = "Test Value";
+        ArgumentException _exception;
+        protected override async Task Because() =>
+            _exception = await Catch<ArgumentException>(() => Subject.Save(Branch, Message, new Document {Value = Value}, Author));
+
+        [Fact]
+        public void ShouldThrowAnArgumentException() =>
+            _exception.Should().NotBeNull();
     }
 }
