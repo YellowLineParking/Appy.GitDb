@@ -64,10 +64,10 @@ namespace Ylp.GitDb.Server
         [Route("{branch}/transaction")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
-        public IHttpActionResult CreateTransaction(string branch) =>
-            Result(() =>
+        public Task<IHttpActionResult> CreateTransaction(string branch) =>
+            Result(async () =>
             {
-                var trans = _gitDb.CreateTransaction(branch);
+                var trans = await _gitDb.CreateTransaction(branch);
                 var transactionId = Guid.NewGuid().ToString();
                 transactions.Add(transactionId, trans);
                 return transactionId;

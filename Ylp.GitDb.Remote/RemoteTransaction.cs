@@ -16,18 +16,22 @@ namespace Ylp.GitDb.Remote
         readonly string _baseUrl;
         readonly string _transactionId;
         bool _isOpen = false;
-        public RemoteTransaction(HttpClient client, string baseUrl, string branch)
+        RemoteTransaction(HttpClient client, string baseUrl, string transactionId)
         {
             _client = client;
             _baseUrl = baseUrl;
-            _transactionId = _client.PostAsync(url($"/{branch}/transaction"), new StringContent("", Encoding.UTF8))
-                                    .WhenSuccessful()
-                                    .Result
-                                    .Content
-                                    .ReadAsStringAsync()
-                                    .Result
-                                    .Replace("\"", "");
+            _transactionId = transactionId;
             _isOpen = true;
+        }
+
+        public async static Task<RemoteTransaction> Create(HttpClient client, string baseUrl, string branch)
+        {
+            var transactionId = (await (await client.PostAsync($"{baseUrl}/{branch}/transaction", new StringContent("", Encoding.UTF8))
+                                                    .WhenSuccessful())
+                                                    .Content
+                                                    .ReadAsStringAsync())
+                                                    .Replace("\"", "");
+            return new RemoteTransaction(client, baseUrl, transactionId);
         }
 
         T executeIfOpen<T>(Func<T> action)
