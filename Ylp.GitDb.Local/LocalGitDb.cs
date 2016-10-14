@@ -107,6 +107,9 @@ namespace Ylp.GitDb.Local
 
         public Task<string> Save(string branch, string message, Document document, Author author)
         {
+            if(string.IsNullOrEmpty(document.Key))
+                throw new ArgumentException("key cannot be empty");
+
             if(_branchesWithTransaction.Contains(branch))
                 throw new Exception("There is a transaction in progress for this branch. Complete the transaction first.");
             var blob = addBlob(document.Value);
