@@ -19,18 +19,11 @@ namespace GitTest.RemoteGitDb
 
         public static async Task<T> GetAsync<T>(this HttpClient client, string url) where T : class
         {
-            try
-            {
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var result = await (await client.GetAsync(url)).Content.ReadAsStringAsync();
+            var response = await client.GetAsync(url).WhenSuccessful();
+            var result = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(result);
             }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-            
 
         public static Task<HttpResponseMessage> PostAsync<T>(this HttpClient client, string url, T item) =>
             client.PostAsync(url, new StringContent(JsonConvert.SerializeObject(item), Encoding.UTF8, "application/json"));
@@ -43,9 +36,15 @@ namespace GitTest.RemoteGitDb
 
         public static async Task<HttpResponseMessage> WhenSuccessful(this Task<HttpResponseMessage> task)
         {
-            var result = await task;
-            if (result.StatusCode != HttpStatusCode.OK) throw new Exception(await result.Content.ReadAsStringAsync());
-            return result;
+            var response = await task;
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+                throw new ArgumentException($"The request was not valid: {response.StatusCode}:{response.ReasonPhrase}");
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                throw new UnauthorizedAccessException($"The request was not authorized:{response.StatusCode}:{response.ReasonPhrase}");
+            if(response.StatusCode == HttpStatusCode.InternalServerError)
+                throw new Exception($"An unexpected error occurred:{response.StatusCode}:{await response.Content.ReadAsStringAsync()}");
+            return response;
         }
+        
     }
 }
