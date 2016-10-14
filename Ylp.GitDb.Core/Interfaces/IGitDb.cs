@@ -21,6 +21,6 @@ namespace Ylp.GitDb.Core.Interfaces
         Task Tag(Reference reference);
         Task CreateBranch(Reference reference);
         Task<IEnumerable<string>> GetAllBranches();
-        ITransaction CreateTransaction(string branch);
+        Task<ITransaction> CreateTransaction(string branch);
     }
 }

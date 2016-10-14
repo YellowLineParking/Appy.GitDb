@@ -64,8 +64,8 @@ namespace Ylp.GitDb.Remote
         public Task<IEnumerable<string>> GetAllBranches() =>
             _client.GetAsync<IEnumerable<string>>(url("/branch"));
 
-        public ITransaction CreateTransaction(string branch) =>
-            new RemoteTransaction(_client, _baseUrl, branch);
+        public async Task<ITransaction> CreateTransaction(string branch) =>
+            await RemoteTransaction.Create(_client, _baseUrl, branch);
 
         public void Dispose() => 
             _client.Dispose();
