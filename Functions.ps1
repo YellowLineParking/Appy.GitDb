@@ -116,7 +116,7 @@ function Pack-Project($projectName, $config, $out){
 		New-Item $out -Type directory -Force | Out-Null
 		$version = Get-AssemblyFileVersion "$projectName\properties\assemblyInfo.cs"
 		Write-Host "Packing $projectName $version to $out"
-		exec { & NuGet pack $projectName\$projectName.csproj -Build -Properties Configuration=$config -OutputDirectory $out -Version $version }
+		exec { & NuGet pack $projectName\$projectName.csproj -Build -Properties Configuration=$config -OutputDirectory $out -Version $version -IncludeReferencedProjects }
 	)	
 	return $version
 }
