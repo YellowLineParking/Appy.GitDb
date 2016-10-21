@@ -139,8 +139,12 @@ namespace Ylp.GitDb.Local
         public Task Tag(Reference reference) =>
             Task.FromResult(_repo.Tags.Add(reference.Name, reference.Pointer));
 
-        public Task CreateBranch(Reference reference) =>
-            Task.FromResult(_repo.Branches.Add(reference.Name, reference.Pointer));
+        public Task CreateBranch(Reference reference)
+        {
+            _repo.Branches.Add(reference.Name, reference.Pointer);
+            _branchLocks.Add(reference.Name, new object());
+            return Task.CompletedTask;
+        }
 
         public Task<IEnumerable<string>> GetAllBranches() =>
             Task.FromResult(_repo.Branches.Select(b => b.FriendlyName));
