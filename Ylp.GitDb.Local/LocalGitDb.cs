@@ -42,19 +42,8 @@ namespace Ylp.GitDb.Local
         static Signature getSignature(Author author) =>
             new Signature(author.Name, author.Email, DateTimeOffset.Now);
 
-        Blob  addBlob(string value)
-        {
-            Blob blob;
-            using (var stream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(stream, Encoding.UTF8))
-            {
-                streamWriter.Write(value);
-                streamWriter.Flush();
-                stream.Position = 0;
-                blob = _repo.ObjectDatabase.CreateBlob(stream);
-            }
-            return blob;
-        }
+        Blob  addBlob(string value) =>
+            _repo.ObjectDatabase.CreateBlob(new MemoryStream(Encoding.UTF8.GetBytes(value ?? string.Empty)));
         
         static void addBlobToTree(string key, Blob blob, TreeDefinition tree)
         {
