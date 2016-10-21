@@ -17,19 +17,24 @@ namespace Ylp.GitDb.Local
     public class LocalGitDb : IGitDb
     {
         readonly ILogger _logger;
-        readonly Repository _repo;
+        Repository _repo;
         readonly List<string> _branchesWithTransaction = new List<string>();
         readonly Dictionary<string, object> _branchLocks;
-        
+        readonly string _path;
+
         public LocalGitDb(string path, ILogger logger)
         {
             _logger = logger;
+            _path = path;
             if (!Directory.Exists($"{path}/.git"))
                 Repository.Init(path);
             
             _repo = new Repository(path);
             if (!_repo.Branches.Any())
-                _repo.Branches.Add("master", commitTree("master", new TreeDefinition(), getSignature(new Author("Default", "default@mail.com")), "Init", true));
+            {
+                var tree = commitTree("master", new TreeDefinition(), getSignature(new Author("Default", "default@mail.com")), "init", true);
+                _repo.Branches.Add("master", tree);
+            }
 
             _branchLocks = _repo.Branches.ToDictionary(branch => branch.FriendlyName, branch => new object());
         }
@@ -50,7 +55,7 @@ namespace Ylp.GitDb.Local
             }
             return blob;
         }
-
+        
         static void addBlobToTree(string key, Blob blob, TreeDefinition tree)
         {
             lock (tree)
@@ -80,7 +85,11 @@ namespace Ylp.GitDb.Local
             else
                 _repo.Refs.UpdateTarget(_repo.Refs[branchObj.CanonicalName], commit.Id);
 
-            return commit.Sha;
+            var sha = commit.Sha;
+
+            flushRepo();
+
+            return sha;
         }
 
         public Task<string> Get(string branch, string key) => 
@@ -102,8 +111,6 @@ namespace Ylp.GitDb.Local
                      .Select(blob => blob.GetContentText())
                      .ToList() ?? 
                 new List<string>()));
-
-       
 
         public Task<string> Save(string branch, string message, Document document, Author author)
         {
@@ -185,6 +192,22 @@ namespace Ylp.GitDb.Local
                     _logger.Log($"Removed blob with key {key} in transaction  on {branch}");
                     return Task.CompletedTask;
                 }));
+        }
+
+        // This is a hack to bypass a memory leak in LibGit2Sharp
+        // Whenever we commit a tree the treedefinition doesn't seem to get disposed correctly
+        // This leads to an increase in memory usage and ultimately an OutOfMemoryException
+        // The case has been submitted to LibGit2Sharp: https://github.com/libgit2/libgit2sharp/issues/1378
+        int _commitCount = 0;
+        void flushRepo()
+        {
+            _commitCount++;
+            if (_commitCount > 100)
+            {
+                _commitCount = 0;
+                _repo?.Dispose();
+                _repo = new Repository(_path);
+            }
         }
 
         public void Dispose() =>
