@@ -63,7 +63,8 @@ namespace Ylp.GitDb.Local
 
             var previousCommit = branchObj?.Tip;
             var tree = _repo.ObjectDatabase.CreateTree(treeDefinition);
-            if (!_repo.HasChanges(previousCommit?.Tree, tree) && !commitEmpty)
+
+            if (previousCommit != null && previousCommit.Tree.Id == tree.Id && !commitEmpty)
                 return string.Empty;
 
             var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
