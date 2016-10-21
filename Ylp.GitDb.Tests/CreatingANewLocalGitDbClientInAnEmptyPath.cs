@@ -10,7 +10,7 @@ namespace Ylp.GitDb.Tests
     {
         [Fact]
         public void InitializesTheRepository() =>
-            Directory.Exists($@"{LocalPath}\.git").Should().BeTrue();
+            Directory.Exists(LocalPath).Should().BeTrue();
 
         [Fact]
         public void AddsAMasterBranch() =>
