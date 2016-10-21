@@ -26,8 +26,8 @@ namespace Ylp.GitDb.Local
         {
             _logger = logger;
             _path = path;
-            if (!Directory.Exists($"{path}/.git"))
-                Repository.Init(path);
+            if (!Directory.Exists(path))
+                Repository.Init(path, true);
             
             _repo = new Repository(path);
             if (!_repo.Branches.Any())
