@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Tests", "Ylp.GitD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Watcher", "Ylp.GitDb.Watcher\Ylp.GitDb.Watcher.csproj", "{E3EBA271-650E-4482-BDEA-41F569051B4D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Benchmark", "Ylp.GitDb.Benchmark\Ylp.GitDb.Benchmark.csproj", "{314EE50D-F6E4-4CB6-AB00-22A7258CF8F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{E3EBA271-650E-4482-BDEA-41F569051B4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3EBA271-650E-4482-BDEA-41F569051B4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3EBA271-650E-4482-BDEA-41F569051B4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{314EE50D-F6E4-4CB6-AB00-22A7258CF8F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{314EE50D-F6E4-4CB6-AB00-22A7258CF8F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{314EE50D-F6E4-4CB6-AB00-22A7258CF8F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{314EE50D-F6E4-4CB6-AB00-22A7258CF8F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
