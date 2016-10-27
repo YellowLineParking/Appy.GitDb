@@ -11,8 +11,8 @@ if (Test-Path '%LocalAppData%\NuGet\NuGet.exe') { ^
 Write-Host 'Restoring NuGet packages'; ^
 NuGet restore; ^
 . '.\Functions.ps1'; ^
-$basePath = Resolve-Path .; ^
-$packagesPath = 'packages'; ^
-$invokeBuildPath = Get-RequiredPackagePath Invoke-Build $basePath\Ylp.GitDb.Server; ^
-& $invokeBuildPath\tools\Invoke-Build.ps1 %* -File build.ps1;
+$projectName = 'Ylp.GitDb.Server';  ^
+$packagesPath = '.\packages';  ^
+$invokeBuildPath = Get-PackagePath Invoke-Build $projectName;  ^
+& $invokeBuildPath\tools\Invoke-Build.ps1 %* -File Tasks.ps1;
 exit /b %ERRORLEVEL%

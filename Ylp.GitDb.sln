@@ -11,19 +11,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Remote", "Ylp.Git
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Local", "Ylp.GitDb.Local\Ylp.GitDb.Local.csproj", "{37D87FB6-E7D6-4217-B021-38CEA7233E6F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{46D2F58C-5500-4E79-B015-858594C6D8A0}"
-	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
-		build.bat = build.bat
-		build.ps1 = build.ps1
-		Functions.ps1 = Functions.ps1
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Tests", "Ylp.GitDb.Tests\Ylp.GitDb.Tests.csproj", "{1C2D86C4-8CAD-457E-B4F1-86A5523B3112}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Watcher", "Ylp.GitDb.Watcher\Ylp.GitDb.Watcher.csproj", "{E3EBA271-650E-4482-BDEA-41F569051B4D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Benchmark", "Ylp.GitDb.Benchmark\Ylp.GitDb.Benchmark.csproj", "{314EE50D-F6E4-4CB6-AB00-22A7258CF8F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{74504B56-4415-458A-9F26-1B4477BFBB38}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		build.bat = build.bat
+		config.yml = config.yml
+		functions.ps1 = functions.ps1
+		tasks.ps1 = tasks.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

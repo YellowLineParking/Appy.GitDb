@@ -1,10 +1,5 @@
-version: 1.0.{build}
-branches:
-  only:
-  - develop
+﻿version: 1.0.{build}
 skip_tags: true
-init: 
-  - ps: $env:prereleaseVersion = ' '
 install:
 - cmd: nuget sources add -Name YLP-Nuget -Source https://www.myget.org/F/ylpcore/auth/c933ee04-37ee-4253-aefa-18f07b182643/api/v2
 build_script:
