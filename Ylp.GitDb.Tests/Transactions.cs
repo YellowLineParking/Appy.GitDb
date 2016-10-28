@@ -147,7 +147,7 @@ namespace Ylp.GitDb.Tests
         Exception _exception;
         protected override async Task Because()
         {
-            using (var t = Subject.CreateTransaction(Branch))
+            using (var t = await Subject.CreateTransaction(Branch))
                 _exception = await Catch<Exception>(() => Subject.Save(Branch, "msg", new Document {Key = Key, Value = "value"}, Author));
         }
 
