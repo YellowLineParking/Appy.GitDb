@@ -16,7 +16,7 @@ namespace Ylp.GitDb.Tests.Watcher
         public void RaisesABranchAddedEvent() =>
             Subject.ShouldRaise("BranchAdded")
                    .WithArgs<BranchAdded>(args => args.BaseBranch == "master" &&
-                                                  args.BranchName == "test" && 
+                                                  args.Branch.Name == "test" && 
                                                   args.Commit == Repo.Branches["master"].Tip.Sha);
     }
 
@@ -31,6 +31,6 @@ namespace Ylp.GitDb.Tests.Watcher
         [Fact]
         public void RaisesABranchAddedEvent() =>
             Subject.ShouldRaise("BranchRemoved")
-                   .WithArgs<BranchRemoved>(args => args.BranchName == "master");
+                   .WithArgs<BranchRemoved>(args => args.Branch.Name == "master");
     }
 }

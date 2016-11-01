@@ -5,7 +5,7 @@ namespace Ylp.GitDb.Watcher
 {
     public class BranchEvent : EventArgs
     {
-        public string BranchName { get; set; }
+        public BranchInfo Branch { get; set; }
     }
     public class BranchAdded : BranchEvent
     {
@@ -23,8 +23,9 @@ namespace Ylp.GitDb.Watcher
 
     public class BranchRemoved : BranchEvent{ }
 
-    public class Initialized : EventArgs
+    public class BranchInfo
     {
-        public string[] Branches { get; set; }
+        public string Name { get; set; }
+        public string Commit { get; set; }
     }
 }

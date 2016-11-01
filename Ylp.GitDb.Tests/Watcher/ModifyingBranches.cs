@@ -17,7 +17,7 @@ namespace Ylp.GitDb.Tests.Watcher
         [Fact]
         public void RaisesBranchChangedEvent() =>
             Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.BranchName == "master" &&
+                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
                                                     args.Added.Any(item => item.Key == "key" && item.Value == "value"));
     }
 
@@ -32,7 +32,7 @@ namespace Ylp.GitDb.Tests.Watcher
         [Fact]
         public void RaisesBranchChangedEvent() =>
             Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.BranchName == "master" &&
+                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
                                                     args.Deleted.Any(item => item.Key == "key"));
     }
 
@@ -47,7 +47,7 @@ namespace Ylp.GitDb.Tests.Watcher
         [Fact]
         public void RaisesBranchChangedEvent() =>
             Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.BranchName == "master" &&
+                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
                                                     args.Modified.Any(item => item.Key == "key" &&
                                                                               item.Value == "value2" &&
                                                                               item.OldValue == "value"));   
@@ -71,7 +71,7 @@ namespace Ylp.GitDb.Tests.Watcher
         [Fact]
         public void RaisesBranchChangedEvent() =>
             Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.BranchName == "master" &&
+                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
                                                     args.Renamed.Any(item => item.Key == "subdir\\key" &&
                                                                              item.OldKey == "key" && 
                                                                              item.Value == "value" &&
