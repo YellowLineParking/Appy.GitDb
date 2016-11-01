@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Local;
+using Ylp.GitDb.Watcher;
 
 namespace Ylp.GitDb.Tests.Utils
 {
@@ -44,7 +46,7 @@ namespace Ylp.GitDb.Tests.Utils
             await Setup();
             Subject = new GitDb.Watcher.Watcher(LocalPath, new AutoMocker().Get<ILogger>(), 1);
             Subject.MonitorEvents();
-            Subject.Start();
+            Subject.Start(new List<BranchInfo>());
             await Because();
             Thread.Sleep(150);
         }

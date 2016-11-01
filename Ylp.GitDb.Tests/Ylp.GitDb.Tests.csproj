@@ -127,7 +127,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CreatingANewLocalGitDbClientInAnEmptyPath.cs" />
     <Compile Include="Watcher\Branching.cs" />
-    <Compile Include="Watcher\InitializingARepo.cs" />
     <Compile Include="Watcher\ModifyingBranches.cs" />
   </ItemGroup>
   <ItemGroup>
