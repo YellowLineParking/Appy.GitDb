@@ -58,11 +58,14 @@ namespace Ylp.GitDb.Watcher
                           .ToList()
                           .ForEach(current =>
                           {
-                              var previousTree = _repo.Lookup<Commit>(previousBranches[current.Key]).Tree;
-                              var currentTree = _repo.Lookup<Commit>(current.Value).Tree;
-                              _logger.Log($"Found differences on branch {current.Key}, starting diff");
+                              var previousCommit = _repo.Lookup<Commit>(previousBranches[current.Key]);
+                              var previousTree = previousCommit.Tree;
+
+                              var currentCommit = _repo.Lookup<Commit>(current.Value);
+                              var currentTree = currentCommit.Tree;
+                              _logger.Log($"Found differences on branch {current.Key}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                               var result = _repo.Diff.Compare<TreeChanges>(previousTree, currentTree);
-                              _logger.Log($"Finished diff on branch {current.Key}");
+                              _logger.Log($"Finished diff on branch {current.Key}, found {result.Added.Count()} added items, {result.Deleted} deleted items, {result.Renamed} renamed items and {result.Modified} modified items");
 
                               BranchChanged?.Invoke(new BranchChanged
                               {

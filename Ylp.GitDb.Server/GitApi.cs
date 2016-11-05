@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Ylp.GitDb.Core.Interfaces;
@@ -129,9 +130,9 @@ namespace Ylp.GitDb.Server
             {
                 return Ok(await action());
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StringContent(ex.Message) });
             }
         }
 
@@ -142,23 +143,11 @@ namespace Ylp.GitDb.Server
                 await action();
                 return Ok();
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest) {Content = new StringContent(ex.Message)});
             }
         }
 
-        IHttpActionResult Result<T>(Func<T> action)
-        {
-            try
-            {
-                var result = action();
-                return Ok(result);
-            }
-            catch (ArgumentException)
-            {
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
-            }
-        }
     }
 }
