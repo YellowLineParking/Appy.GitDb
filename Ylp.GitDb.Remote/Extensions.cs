@@ -38,9 +38,9 @@ namespace GitTest.RemoteGitDb
         {
             var response = await task;
             if (response.StatusCode == HttpStatusCode.BadRequest)
-                throw new ArgumentException($"The request was not valid: {response.StatusCode}:{response.ReasonPhrase}");
+                throw new ArgumentException($"The request was not valid: {response.StatusCode}:{response.ReasonPhrase}:{await response.Content.ReadAsStringAsync()}");
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                throw new UnauthorizedAccessException($"The request was not authorized:{response.StatusCode}:{response.ReasonPhrase}");
+                throw new UnauthorizedAccessException($"The request was not authorized:{response.StatusCode}:{response.ReasonPhrase}:{await response.Content.ReadAsStringAsync()}");
             if(response.StatusCode == HttpStatusCode.InternalServerError)
                 throw new Exception($"An unexpected error occurred:{response.StatusCode}:{await response.Content.ReadAsStringAsync()}");
             return response;
