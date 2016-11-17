@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using GitTest.RemoteGitDb;
 using Newtonsoft.Json;
@@ -17,6 +19,13 @@ namespace Ylp.GitDb.Remote
         {
             _baseUrl = url;
             _client = client;
+        }
+
+        public RemoteGitDb(string userName, string password, string url)
+        {
+            _baseUrl = url;
+            _client = new HttpClient();
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}")));
         }
 
         string url(string resource) =>
