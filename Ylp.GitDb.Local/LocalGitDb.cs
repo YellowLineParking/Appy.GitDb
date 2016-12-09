@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LibGit2Sharp;
+using LibGit2Sharp.Handlers;
 using Newtonsoft.Json;
 using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
@@ -17,22 +18,53 @@ namespace Ylp.GitDb.Local
     public class LocalGitDb : IGitDb
     {
         readonly ILogger _logger;
+        readonly string _remoteUrl;
+        readonly string _userName;
+        readonly string _userEmail;
+        readonly string _password;
         Repository _repo;
         readonly List<string> _branchesWithTransaction = new List<string>();
         readonly Dictionary<string, object> _branchLocks;
         readonly string _path;
+        readonly PushOptions _pushOptions;
+        readonly PullOptions _pullOptions;
+        readonly CloneOptions _cloneOptions;
 
-        public LocalGitDb(string path, ILogger logger)
+        public LocalGitDb(string path, ILogger logger, string remoteUrl = null, string userName = null, string userEmail = null, string password = null)
         {
             _logger = logger;
+            _remoteUrl = string.IsNullOrEmpty(remoteUrl) ? null : remoteUrl;
+            _userName = string.IsNullOrEmpty(userName) ? null : userName;
+            _userEmail = string.IsNullOrEmpty(userEmail) ? null : userEmail;
+            _password = string.IsNullOrEmpty(password) ? null : password;
             _path = path;
+
+            CredentialsHandler credentials = (url, fromUrl, types) => new UsernamePasswordCredentials { Username = _userName, Password = _password };
+
+
             if (!Directory.Exists(path))
-                Repository.Init(path, true);
-            
+            {
+                if (_remoteUrl != null)
+                    Repository.Clone(_remoteUrl, _path, new CloneOptions { IsBare = true, CredentialsProvider = credentials });
+                else
+                    Repository.Init(path, true);
+            }
+                
             _repo = new Repository(path);
+
+            if (!string.IsNullOrEmpty(_remoteUrl))
+            {
+                _pushOptions = new PushOptions { CredentialsProvider = credentials };
+                var fetchOptions = new FetchOptions {CredentialsProvider = credentials, TagFetchMode = TagFetchMode.All};
+                var mergeOptions = new MergeOptions {FastForwardStrategy = FastForwardStrategy.FastForwardOnly};
+                _pullOptions = new PullOptions {FetchOptions = fetchOptions, MergeOptions = mergeOptions};
+                _repo.Network.Remotes.Add("origin", _remoteUrl);
+                pull();
+            }
+            
             if (!_repo.Branches.Any())
             {
-                var tree = commitTree("master", new TreeDefinition(), getSignature(new Author("Default", "default@mail.com")), "init", true);
+                var tree = commitTree("master", new TreeDefinition(), getSignature(new Author(_userName ?? "Default", _userEmail ?? "default@mail.com")), "init", true);
                 _repo.Branches.Add("master", tree);
             }
 
@@ -116,6 +148,7 @@ namespace Ylp.GitDb.Local
                 addBlobToTree(document.Key, blob, tree);
                 var sha = commitTree(branch, tree, getSignature(author), message);
                 _logger.Log($"Added {document.Key} on branch {branch}");
+                push(branch);
                 return Task.FromResult(sha);
             }
         }
@@ -132,17 +165,24 @@ namespace Ylp.GitDb.Local
                 deleteKeyFromTree(key, tree);
                 var sha = commitTree(branch, tree, getSignature(author), message);
                 _logger.Log($"Deleted {key} on branch {branch}");
+                push(branch);
                 return Task.FromResult(sha);
             }
         }
 
-        public Task Tag(Reference reference) =>
-            Task.FromResult(_repo.Tags.Add(reference.Name, reference.Pointer));
+        public Task Tag(Reference reference)
+        {
+            var result = _repo.Tags.Add(reference.Name, reference.Pointer);
+            pushTags();
+            return Task.FromResult(result);
+        }
+            
 
         public Task CreateBranch(Reference reference)
         {
             _repo.Branches.Add(reference.Name, reference.Pointer);
             _branchLocks.Add(reference.Name, new object());
+            push(reference.Name);
             return Task.CompletedTask;
         }
 
@@ -171,6 +211,7 @@ namespace Ylp.GitDb.Local
                         var sha = commitTree(branch, tree, getSignature(author), message);
                         _branchesWithTransaction.Remove(branch);
                         _logger.Log($"Commited transaction on {branch}");
+                        push(branch);
                         return Task.FromResult(sha);
                     }
                 },
@@ -186,6 +227,27 @@ namespace Ylp.GitDb.Local
                     _logger.Log($"Removed blob with key {key} in transaction  on {branch}");
                     return Task.CompletedTask;
                 }));
+        }
+
+        void pull()
+        {
+            if (string.IsNullOrEmpty(_remoteUrl)) return;
+            _repo.Network.Pull(new Signature(_userName, _userEmail, DateTimeOffset.Now), _pullOptions);
+        }
+
+        void push(string branch)
+        {
+            if (string.IsNullOrEmpty(_remoteUrl)) return;
+            _repo.Network.Push(_repo.Branches[branch], _pushOptions);
+        }
+
+        void pushTags()
+        {
+            if (string.IsNullOrEmpty(_remoteUrl)) return;
+            _repo.Tags
+                 .ToList()
+                 .ForEach(tag => _repo.Network.Push(_repo.Network.Remotes["origin"], tag.CanonicalName, _pushOptions));
+            
         }
 
         // This is a hack to bypass a memory leak in LibGit2Sharp
