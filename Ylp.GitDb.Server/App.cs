@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
+using Microsoft.Owin.Extensions;
 using Microsoft.Owin.Hosting;
 using Owin;
 using Thinktecture.IdentityModel.Owin;
@@ -45,7 +46,9 @@ namespace Ylp.GitDb.Server
             app.UseBasicAuthentication("ylp.gitdb", auth.ValidateUsernameAndPassword);
             config.MapHttpAttributeRoutes();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(_container);
+            
             app.Use<LoggingMiddleware>();
+            app.UseStageMarker(PipelineStage.MapHandler);
             app.UseWebApi(config);
         }
     }

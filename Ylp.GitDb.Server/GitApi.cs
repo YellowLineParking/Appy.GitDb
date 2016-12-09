@@ -18,13 +18,13 @@ namespace Ylp.GitDb.Server
             _gitDb = gitDb;
         }
 
-        [Route("{branch}/document/{key}")]
+        [Route("{branch}/document/{*key}")]
         [HttpGet]
         [Authorize(Roles = "admin, read")]
         public Task<IHttpActionResult> Get(string branch, string key) =>
             Result(() => _gitDb.Get(branch, key));
 
-        [Route("{branch}/documents/{key}")]
+        [Route("{branch}/documents/{*key}")]
         [HttpGet]
         [Authorize(Roles = "admin, read")]
         public Task<IHttpActionResult> GetFiles(string branch, string key) =>
