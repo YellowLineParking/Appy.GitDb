@@ -19,9 +19,8 @@ namespace GitTest.RemoteGitDb
 
         public static async Task<T> GetAsync<T>(this HttpClient client, string url) where T : class
         {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var response = await client.GetAsync(url).WhenSuccessful();
-            var result = await response.Content.ReadAsStringAsync();
+                var response = await client.GetAsync(url).WhenSuccessful();
+                var result = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(result);
             }
 
