@@ -65,7 +65,7 @@ namespace Ylp.GitDb.Watcher
                               var currentTree = currentCommit.Tree;
                               _logger.Log($"Found differences on branch {current.Key}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                               var result = _repo.Diff.Compare<TreeChanges>(previousTree, currentTree);
-                              _logger.Log($"Finished diff on branch {current.Key}, found {result.Added.Count()} added items, {result.Deleted} deleted items, {result.Renamed} renamed items and {result.Modified} modified items");
+                              _logger.Log($"Finished diff on branch {current.Key}, found {result.Added.Count()} added items, {result.Deleted.Count()} deleted items, {result.Renamed.Count()} renamed items and {result.Modified.Count()} modified items");
 
                               BranchChanged?.Invoke(new BranchChanged
                               {
@@ -116,9 +116,9 @@ namespace Ylp.GitDb.Watcher
         }
 
         string getBlobValue(ObjectId objectId) =>
-            _repo.Lookup<Blob>(objectId).GetContentText();
+            _repo.Lookup<Blob>(objectId).GetContentText();            
 
-        public void Dispose() =>
+    public void Dispose() =>
             _timer?.Dispose();
     }
 }
