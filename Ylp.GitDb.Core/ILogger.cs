@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace Ylp.GitDb.Core
     public class Logger : ILogger
     {
         public readonly string FileName;
+        static readonly object LockObj = new object();
 
         public Logger(string fileName)
         {
@@ -20,7 +22,9 @@ namespace Ylp.GitDb.Core
 
         public Task Log(string message)
         {
-            File.AppendAllText(FileName, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}\n");
+            lock(LockObj)
+                File.AppendAllText(FileName, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}\n");
+
             return Task.CompletedTask;
         }
     }
