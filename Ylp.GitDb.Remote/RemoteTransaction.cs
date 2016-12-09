@@ -24,7 +24,7 @@ namespace Ylp.GitDb.Remote
             _isOpen = true;
         }
 
-        public async static Task<RemoteTransaction> Create(HttpClient client, string baseUrl, string branch)
+        public static async Task<RemoteTransaction> Create(HttpClient client, string baseUrl, string branch)
         {
             var transactionId = (await (await client.PostAsync($"{baseUrl}/{branch}/transaction", new StringContent("", Encoding.UTF8))
                                                     .WhenSuccessful())

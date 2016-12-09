@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using GitTest.RemoteGitDb;
 using Newtonsoft.Json;
 using Ylp.GitDb.Core.Interfaces;
@@ -15,6 +17,7 @@ namespace Ylp.GitDb.Remote
     {
         readonly HttpClient _client;
         readonly string _baseUrl;
+
         public RemoteGitDb(HttpClient client, string url)
         {
             _baseUrl = url;
@@ -32,11 +35,19 @@ namespace Ylp.GitDb.Remote
         string url(string resource) =>
             _baseUrl + resource;
 
-        public Task<string> Get(string branch, string key) =>
-            _client.GetAsync<string>(url($"/{branch}/document/{key}"));
+        string urlEncode(string value) =>
+            HttpUtility.UrlEncode(value);
 
-        public async Task<T> Get<T>(string branch, string key) where T : class =>
-            JsonConvert.DeserializeObject<T>(await _client.GetAsync<string>(url($"/{branch}/document/{key}")));
+        public Task<string> Get(string branch, string key) =>
+            _client.GetAsync<string>(url($"/{branch}/document/{urlEncode(key)}"));
+
+        public async Task<T> Get<T>(string branch, string key) where T : class
+        {
+                var result = await Get(branch, key);
+                return string.IsNullOrEmpty(result)
+                ? null
+                : JsonConvert.DeserializeObject<T>(result);
+        }
 
         public async Task<IReadOnlyCollection<T>> GetFiles<T>(string branch, string key) =>
             (await _client.GetAsync<List<string>>(url($"/{branch}/documents/{key}")))
