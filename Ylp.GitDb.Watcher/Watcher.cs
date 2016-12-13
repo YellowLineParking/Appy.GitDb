@@ -28,7 +28,7 @@ namespace Ylp.GitDb.Watcher
             _logger = logger;
             _interval = interval;
             _repo = new Repository(path);
-            _branches = _repo.Branches.ToDictionary(b => b.FriendlyName, b => b.Tip.Sha);
+            _branches = _repo.Branches.Where(b => !b.IsRemote).ToDictionary(b => b.FriendlyName, b => b.Tip.Sha);
         }
 
         public void Start(IEnumerable<BranchInfo> branchInfo)
@@ -44,6 +44,7 @@ namespace Ylp.GitDb.Watcher
         {
             var previousBranches = _branches;
             var currentBranches = _repo.Branches
+                                        .Where(b => !b.IsRemote)
                                        .ToDictionary(b => b.FriendlyName, b => b.Tip.Sha);
             _branches = currentBranches;
 
