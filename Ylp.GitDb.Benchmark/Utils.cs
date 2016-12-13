@@ -41,7 +41,7 @@ namespace Ylp.GitDb.Benchmark
             const int batchSize = 10000;
             const int documentCount = 1000 * 1000;
             var index = 0;
-            var db = new LocalGitDb(directory, new Logger("measure.log"));
+            var db = new LocalGitDb(directory, Log.Create("git-repository"));
             var author = new Author("name", "email");
             foreach (var batch in GenerateItems(documentCount, 3, batchSize))
             {

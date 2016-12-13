@@ -15,6 +15,7 @@ namespace Ylp.GitDb.Watcher
 
     public class BranchChanged : BranchEvent
     {
+        public string PreviousCommit { get; set; }
         public List<ItemAdded> Added { get; set; }
         public List<ItemModified> Modified { get; set; }
         public List<ItemDeleted> Deleted { get; set; }

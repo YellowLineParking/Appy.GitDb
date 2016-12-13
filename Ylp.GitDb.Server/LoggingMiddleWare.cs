@@ -13,7 +13,7 @@ namespace Ylp.GitDb.Server
             var url = context.Request.Uri;
             var method = context.Request.Method;
             await Next.Invoke(context);
-            await Logger.Log($"REQUEST: {method} {url} => {context.Response.StatusCode}");
+            Logger.Trace($"REQUEST: {method} {url} => {context.Response.StatusCode}");
         }
     }
 }

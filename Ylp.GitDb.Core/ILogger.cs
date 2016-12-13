@@ -1,31 +1,27 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
+using NLog;
 
 namespace Ylp.GitDb.Core
 {
     public interface ILogger
     {
-        Task Log(string message);
+        void Debug(string format, params object[] args);
+        void Debug(Exception exception, string format, params object[] args);
+        void Error(string format, params object[] args);
+        void Error(Exception exception, string format, params object[] args);
+        void Fatal(string format, params object[] args);
+        void Fatal(Exception exception, string format, params object[] args);
+        void Info(string format, params object[] args);
+        void Info(Exception exception, string format, params object[] args);
+        void Trace(string format, params object[] args);
+        void Trace(Exception exception, string format, params object[] args);
+        void Warn(string format, params object[] args);
+        void Warn(Exception exception, string format, params object[] args);
     }
 
-    public class Logger : ILogger
+    public class Log : Logger, ILogger
     {
-        public readonly string FileName;
-        static readonly object LockObj = new object();
-
-        public Logger(string fileName)
-        {
-            FileName = fileName;
-        }
-
-        public Task Log(string message)
-        {
-            lock(LockObj)
-                File.AppendAllText(FileName, $"{DateTime.Now.ToString("HH:mm:ss")}: {message}\n");
-
-            return Task.CompletedTask;
-        }
+        public static ILogger Create(string name) => 
+            (ILogger)LogManager.GetLogger(name, typeof(Log));
     }
 }
