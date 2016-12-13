@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using Castle.Core.Internal;
 using FluentAssertions;
 using LibGit2Sharp;
-using Moq.AutoMock;
 using Xunit;
-using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Local;
@@ -41,10 +39,10 @@ namespace Ylp.GitDb.Tests.Utils
 
         public async Task InitializeAsync()
         {
-            GitDb = new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>());
+            GitDb = new LocalGitDb(LocalPath);
             Repo = new Repository(LocalPath);
             await Setup();
-            Subject = new GitDb.Watcher.Watcher(LocalPath, new AutoMocker().Get<ILogger>(), 1);
+            Subject = new GitDb.Watcher.Watcher(LocalPath, 1);
             Subject.MonitorEvents();
             Subject.Start(new List<BranchInfo>());
             await Because();
