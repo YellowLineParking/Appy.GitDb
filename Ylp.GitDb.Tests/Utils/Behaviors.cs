@@ -23,6 +23,6 @@ namespace Ylp.GitDb.Tests.Utils
         }
 
         public static void HasTheCorrectData<T>(this Commit commit, string expectedKey, T expectedValue) =>
-            commit.HasTheCorrectData(expectedKey, JsonConvert.SerializeObject(expectedValue));
+            commit.HasTheCorrectData(expectedKey, JsonConvert.SerializeObject(expectedValue, Formatting.Indented));
     }
 }
