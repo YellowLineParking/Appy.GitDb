@@ -187,7 +187,7 @@ namespace Ylp.GitDb.Local
         }
 
         public Task<IEnumerable<string>> GetAllBranches() =>
-            Task.FromResult(_repo.Branches.Select(b => b.FriendlyName));
+            Task.FromResult(_repo.Branches.Where(b => !b.IsRemote).Select(b => b.FriendlyName));
 
         public Task<ITransaction> CreateTransaction(string branch)
         {
