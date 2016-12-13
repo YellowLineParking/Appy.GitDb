@@ -27,7 +27,7 @@ namespace Ylp.GitDb.Local
         readonly Dictionary<string, object> _branchLocks;
         readonly string _path;
         readonly PushOptions _pushOptions;
-        readonly PullOptions _pullOptions;
+        readonly FetchOptions _fetchOptions;
         readonly CloneOptions _cloneOptions;
 
         public LocalGitDb(string path, ILogger logger, string remoteUrl = null, string userName = null, string userEmail = null, string password = null)
@@ -55,11 +55,17 @@ namespace Ylp.GitDb.Local
             if (!string.IsNullOrEmpty(_remoteUrl))
             {
                 _pushOptions = new PushOptions { CredentialsProvider = credentials };
-                var fetchOptions = new FetchOptions {CredentialsProvider = credentials, TagFetchMode = TagFetchMode.All};
-                var mergeOptions = new MergeOptions {FastForwardStrategy = FastForwardStrategy.FastForwardOnly};
-                _pullOptions = new PullOptions {FetchOptions = fetchOptions, MergeOptions = mergeOptions};
+                _fetchOptions = new FetchOptions {CredentialsProvider = credentials, Prune = false, TagFetchMode = TagFetchMode.All};
+                
+                if(_repo.Network.Remotes["origin"] != null)
+                    _repo.Network.Remotes.Remove("origin");
+
                 _repo.Network.Remotes.Add("origin", _remoteUrl);
-                pull();
+                fetch();
+                Task.WaitAll(_repo.Branches
+                                  .Select(b => b.FriendlyName)
+                                  .Select(push)
+                                  .ToArray());
             }
             
             if (!_repo.Branches.Any())
@@ -147,8 +153,8 @@ namespace Ylp.GitDb.Local
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
                 addBlobToTree(document.Key, blob, tree);
                 var sha = commitTree(branch, tree, getSignature(author), message);
-                _logger.Log($"Added {document.Key} on branch {branch}");
-                push(branch);
+                _logger.Log($"Added {document.Key} on branch {branch}").Wait();
+                push(branch).Wait();
                 return Task.FromResult(sha);
             }
         }
@@ -164,8 +170,8 @@ namespace Ylp.GitDb.Local
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
                 deleteKeyFromTree(key, tree);
                 var sha = commitTree(branch, tree, getSignature(author), message);
-                _logger.Log($"Deleted {key} on branch {branch}");
-                push(branch);
+                _logger.Log($"Deleted {key} on branch {branch}").Wait();
+                push(branch).Wait();
                 return Task.FromResult(sha);
             }
         }
@@ -178,12 +184,11 @@ namespace Ylp.GitDb.Local
         }
             
 
-        public Task CreateBranch(Reference reference)
+        public async Task CreateBranch(Reference reference)
         {
             _repo.Branches.Add(reference.Name, reference.Pointer);
             _branchLocks.Add(reference.Name, new object());
-            push(reference.Name);
-            return Task.CompletedTask;
+            await push(reference.Name);
         }
 
         public Task<IEnumerable<string>> GetAllBranches() =>
@@ -211,7 +216,7 @@ namespace Ylp.GitDb.Local
                         var sha = commitTree(branch, tree, getSignature(author), message);
                         _branchesWithTransaction.Remove(branch);
                         _logger.Log($"Commited transaction on {branch}");
-                        push(branch);
+                        push(branch).Wait();
                         return Task.FromResult(sha);
                     }
                 },
@@ -229,16 +234,21 @@ namespace Ylp.GitDb.Local
                 }));
         }
 
-        void pull()
+        void fetch()
         {
             if (string.IsNullOrEmpty(_remoteUrl)) return;
-            _repo.Network.Pull(new Signature(_userName, _userEmail, DateTimeOffset.Now), _pullOptions);
+            _repo.Network.Fetch(_repo.Network.Remotes["origin"], new List<string> { "+refs/heads/*:refs/heads/*" }, _fetchOptions);
         }
 
-        void push(string branch)
+        async Task push(string branch)
         {
             if (string.IsNullOrEmpty(_remoteUrl)) return;
-            _repo.Network.Push(_repo.Branches[branch], _pushOptions);
+
+            await _logger.Log($"Pushing to {_remoteUrl} with user name {_userName} and password {_password}");
+
+            var localBranch = _repo.Branches[branch];
+            _repo.Branches.Update(localBranch, b => b.Remote = "origin", b => b.UpstreamBranch = localBranch.CanonicalName);
+            _repo.Network.Push(localBranch, _pushOptions);
         }
 
         void pushTags()
