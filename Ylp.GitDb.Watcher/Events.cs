@@ -7,7 +7,7 @@ namespace Ylp.GitDb.Watcher
     {
         public BranchInfo Branch { get; set; }
     }
-    public class BranchAdded : BranchEvent
+    public class BranchAdded : BranchChanged
     {
         public string Commit { get; set; }
         public string BaseBranch { get; set; }

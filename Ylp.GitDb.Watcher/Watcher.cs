@@ -62,12 +62,9 @@ namespace Ylp.GitDb.Watcher
                                 try
                                 {
                                     var previousCommit = _repo.Lookup<Commit>(previousBranches[current.Key]);
-                                    var previousTree = previousCommit.Tree;
-
                                     var currentCommit = _repo.Lookup<Commit>(current.Value);
-                                    var currentTree = currentCommit.Tree;
                                     _logger.Trace($"Found differences on branch {current.Key}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
-                                    var result = _repo.Diff.Compare<TreeChanges>(previousTree, currentTree);
+                                    var result = _repo.Diff.Compare<TreeChanges>(previousCommit.Tree, currentCommit.Tree);
                                     _logger.Info($"Finished diff on branch {current.Key}, found {result.Added.Count()} added items, {result.Deleted.Count()} deleted items, {result.Renamed.Count()} renamed items and {result.Modified.Count()} modified items");
 
                                     BranchChanged?.Invoke(new BranchChanged
@@ -106,22 +103,60 @@ namespace Ylp.GitDb.Watcher
                            .ToList()
                            .ForEach(current =>
                            {
-                               var baseBranch = string.Empty;
                                try
                                {
-                                   baseBranch = _repo.Branches.FirstOrDefault(b => b.Tip.Sha == current.Value && b.FriendlyName != current.Key)?.FriendlyName;
-                                   _logger.Info($"Detected a new branch {current.Key} based on {baseBranch}");
+                                   _logger.Info($"Detected a new branch {current.Key}");
+                                   var currentCommit = _repo.Lookup<Commit>(current.Value);
+                                   var previousCommit = currentCommit;
+                                   string baseBranch = null;
+                                   _logger.Trace($"Finding the base branch");
+                                   do
+                                   {
+                                       baseBranch = _repo.Branches.FirstOrDefault(b => b.Tip.Sha == previousCommit.Sha && b.FriendlyName != current.Key)?.FriendlyName;
+                                        if(baseBranch == null)
+                                           previousCommit = previousCommit.Parents.FirstOrDefault();
+                                   } while (baseBranch == null && previousCommit != null);
+
+                                   if (previousCommit == null)
+                                   {
+                                       _logger.Error($"Could not find a base branch for the newly created branch {current.Key}, skipping raising an event");
+                                       return;
+                                   }
+
+                                   _logger.Trace($"Found base branch {baseBranch} for {current.Key}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
+                                   var result = _repo.Diff.Compare<TreeChanges>(previousCommit.Tree, currentCommit.Tree);
+                                   _logger.Info($"Finished diff, found {result.Added.Count()} added items, {result.Deleted.Count()} deleted items, {result.Renamed.Count()} renamed items and {result.Modified.Count()} modified items");
+
                                    BranchAdded?.Invoke(new BranchAdded
                                    {
                                        Branch = new BranchInfo {Name = current.Key, Commit = current.Value},
                                        Commit = current.Value,
-                                       BaseBranch = baseBranch
+                                       BaseBranch = baseBranch,
+                                       Added = result.Added.Select(a => new ItemAdded
+                                       {
+                                           Key = a.Path,
+                                           Value = getBlobValue(a.Oid)
+                                       }).ToList(),
+                                       Modified = result.Modified.Select(m => new ItemModified
+                                       {
+                                           Key = m.Path,
+                                           Value = getBlobValue(m.Oid),
+                                           OldValue = getBlobValue(m.OldOid)
+                                       }).ToList(),
+                                       Renamed = result.Renamed.Select(r => new ItemRenamed
+                                       {
+                                           Key = r.Path,
+                                           Value = getBlobValue(r.Oid),
+                                           OldValue = getBlobValue(r.OldOid),
+                                           OldKey = r.OldPath
+                                       }).ToList(),
+                                       Deleted = result.Deleted.Select(d => new ItemDeleted { Key = d.Path, Value = getBlobValue(d.OldOid) }).ToList()
                                    });
                            
                                }
                                catch (Exception ex)
                                {
-                                   _logger.Error(ex, $"Error while checking new branch {current.Key} based off of {baseBranch}");
+                                   _logger.Error(ex, $"Error while checking new branch {current.Key}");
                                    throw;
                                }
                            });
