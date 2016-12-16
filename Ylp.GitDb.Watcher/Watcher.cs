@@ -109,7 +109,7 @@ namespace Ylp.GitDb.Watcher
                                    var currentCommit = _repo.Lookup<Commit>(current.Value);
                                    var previousCommit = currentCommit;
                                    string baseBranch = null;
-                                   _logger.Trace($"Finding the base branch");
+                                   _logger.Trace($"Searching a base branch");
                                    do
                                    {
                                        baseBranch = _repo.Branches.FirstOrDefault(b => b.Tip.Sha == previousCommit.Sha && b.FriendlyName != current.Key)?.FriendlyName;
@@ -119,11 +119,24 @@ namespace Ylp.GitDb.Watcher
 
                                    if (previousCommit == null)
                                    {
-                                       _logger.Error($"Could not find a base branch for the newly created branch {current.Key}, skipping raising an event");
-                                       return;
+                                       var otherBranch = _repo.Branches.FirstOrDefault(b => b.FriendlyName != current.Key);
+                                       if (otherBranch != null)
+                                       {
+                                           previousCommit = otherBranch.Tip;
+                                           baseBranch = otherBranch.FriendlyName;
+                                           _logger.Trace($"Could not find a base branch for the newly created branch {current.Key}, taking {baseBranch} and starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
+                                       }
+                                       else
+                                       {
+                                           _logger.Error($"Could not find any base branch for the newly created branch {current.Key}, skipping raising an event");
+                                           return;
+                                       }
+                                   }
+                                   else
+                                   {
+                                       _logger.Trace($"Found base branch {baseBranch} for {current.Key}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                                    }
 
-                                   _logger.Trace($"Found base branch {baseBranch} for {current.Key}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                                    var result = _repo.Diff.Compare<TreeChanges>(previousCommit.Tree, currentCommit.Tree);
                                    _logger.Info($"Finished diff, found {result.Added.Count()} added items, {result.Deleted.Count()} deleted items, {result.Renamed.Count()} renamed items and {result.Modified.Count()} modified items");
 
