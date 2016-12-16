@@ -161,7 +161,8 @@ namespace Ylp.GitDb.Local
             }
                 
             var blob = addBlob(document.Value);
-            lock (_branchLocks[branch])
+            
+            lock (getLock(branch))
             {
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
                 addBlobToTree(document.Key, blob, tree);
@@ -178,7 +179,7 @@ namespace Ylp.GitDb.Local
 
         public Task<string> Delete(string branch, string key, string message, Author author)
         {
-            lock (_branchLocks[branch])
+            lock (getLock(branch))
             {
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
                 deleteKeyFromTree(key, tree);
@@ -224,7 +225,7 @@ namespace Ylp.GitDb.Local
                 },
                 commit: (message, author) =>
                 {
-                    lock (_branchLocks[branch])
+                    lock (getLock(branch))
                     {
                         var sha = commitTree(branch, tree, getSignature(author), message);
                         _branchesWithTransaction.Remove(branch);
@@ -259,6 +260,16 @@ namespace Ylp.GitDb.Local
                 _repo.Branches.Update(localBranch, b => b.Remote = "origin", b => b.UpstreamBranch = localBranch.CanonicalName);
                 _repo.Network.Push(localBranch, _pushOptions);
             });
+        }
+
+        object getLock(string branch)
+        {
+            lock (_branchLocks)
+            {
+                if (!_branchLocks.ContainsKey(branch))
+                    _branchLocks.Add(branch, new object());
+                return _branchLocks[branch];
+            }
         }
 
         // This is a hack to bypass a memory leak in LibGit2Sharp
