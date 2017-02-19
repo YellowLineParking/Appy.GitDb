@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BranchDictionary.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="ItemDetails.cs" />
     <Compile Include="Watcher.cs" />

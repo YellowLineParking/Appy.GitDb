@@ -17,7 +17,7 @@ namespace Ylp.GitDb.Tests.Watcher
             Subject.ShouldRaise("BranchAdded")
                    .WithArgs<BranchAdded>(args => args.BaseBranch == "master" &&
                                                   args.Branch.Name == "test" && 
-                                                  args.Commit == Repo.Branches["master"].Tip.Sha);
+                                                  args.Branch.Commit == Repo.Branches["master"].Tip.Sha);
     }
 
     public class RemovingABranch : WithWatcher
