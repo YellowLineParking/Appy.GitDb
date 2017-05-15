@@ -30,7 +30,7 @@ namespace Ylp.GitDb.Server
                 serverLog.Info($"Server started on {url}, with repo at {gitRepoPath}");
                 Console.WriteLine("Press any key to exit");
                 Console.ReadKey();
-            };
+            }
         }
     }
 }

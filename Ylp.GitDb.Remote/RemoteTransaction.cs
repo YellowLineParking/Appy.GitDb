@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using GitTest.RemoteGitDb;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
 
@@ -15,7 +14,7 @@ namespace Ylp.GitDb.Remote
         readonly HttpClient _client;
         readonly string _baseUrl;
         readonly string _transactionId;
-        bool _isOpen = false;
+        bool _isOpen;
         RemoteTransaction(HttpClient client, string baseUrl, string transactionId)
         {
             _client = client;

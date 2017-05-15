@@ -10,7 +10,7 @@ namespace Ylp.GitDb.Benchmark
 {
     static class Measure
     {
-        static readonly Author Author = new Author("name", "email");
+        static readonly Author _author = new Author("name", "email");
         
 
         public static double WritesPerSecond(Func<IGitDb> createDb, int batchSize, int keySize, int filesInRepo)
@@ -27,7 +27,7 @@ namespace Ylp.GitDb.Benchmark
                                                                                         using (var t = await db.CreateTransaction(branchName))
                                                                                         {
                                                                                             await t.AddMany(docs);
-                                                                                            await t.Commit("message", Author);
+                                                                                            await t.Commit("message", _author);
                                                                                         }
                                                                                     })
                                                                                 )

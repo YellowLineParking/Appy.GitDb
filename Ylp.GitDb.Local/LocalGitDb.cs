@@ -20,12 +20,9 @@ namespace Ylp.GitDb.Local
         readonly ILogger _logger;
         readonly string _remoteUrl;
         readonly string _userName;
-        readonly string _userEmail;
-        readonly string _password;
-        Repository _repo;
+        readonly Repository _repo;
         readonly List<string> _branchesWithTransaction = new List<string>();
         readonly Dictionary<string, object> _branchLocks;
-        readonly string _path;
         readonly PushOptions _pushOptions;
 
         public LocalGitDb(string path, ILogger logger, string remoteUrl = null, string userName = null, string userEmail = null, string password = null)
@@ -33,13 +30,12 @@ namespace Ylp.GitDb.Local
             _logger = logger;
             _remoteUrl = string.IsNullOrEmpty(remoteUrl) ? null : remoteUrl;
             _userName = string.IsNullOrEmpty(userName) ? null : userName;
-            _userEmail = string.IsNullOrEmpty(userEmail) ? null : userEmail;
-            _password = string.IsNullOrEmpty(password) ? null : password;
-            _path = path;
+            userEmail = string.IsNullOrEmpty(userEmail) ? null : userEmail;
+            password = string.IsNullOrEmpty(password) ? null : password;
 
             _logger.Trace("Starting local git db");
 
-            CredentialsHandler credentials = (url, fromUrl, types) => new UsernamePasswordCredentials { Username = _userName, Password = _password };
+            CredentialsHandler credentials = (url, fromUrl, types) => new UsernamePasswordCredentials { Username = _userName, Password = password };
 
 
             if (!Directory.Exists(path))
@@ -47,7 +43,7 @@ namespace Ylp.GitDb.Local
                 if (_remoteUrl != null)
                 {
                     _logger.Trace($"No repsotiory exists on disk, cloning the repo from {_remoteUrl}");
-                    Repository.Clone(_remoteUrl, _path, new CloneOptions {IsBare = true, CredentialsProvider = credentials});
+                    Repository.Clone(_remoteUrl, path, new CloneOptions {IsBare = true, CredentialsProvider = credentials});
                 }
                 else
                 {
@@ -74,7 +70,7 @@ namespace Ylp.GitDb.Local
             
             if (!_repo.Branches.Any())
             {
-                var sha = commitTree("master", new TreeDefinition(), getSignature(new Author(_userName ?? "Default", _userEmail ?? "default@mail.com")), "init", true);
+                var sha = commitTree("master", new TreeDefinition(), getSignature(new Author(_userName ?? "Default", userEmail ?? "default@mail.com")), "init", true);
                 _logger.Trace($"Repository contains no branches, created an initial commit for branch master with sha {sha}");
                 _repo.Branches.Add("master", sha);
             }
@@ -118,11 +114,7 @@ namespace Ylp.GitDb.Local
             else
                 _repo.Refs.UpdateTarget(_repo.Refs[branchObj.CanonicalName], commit.Id);
 
-            var sha = commit.Sha;
-
-            flushRepo();
-
-            return sha;
+            return commit.Sha;
         }
 
         public Task<string> Get(string branch, string key) => 
@@ -269,22 +261,6 @@ namespace Ylp.GitDb.Local
                 if (!_branchLocks.ContainsKey(branch))
                     _branchLocks.Add(branch, new object());
                 return _branchLocks[branch];
-            }
-        }
-
-        // This is a hack to bypass a memory leak in LibGit2Sharp
-        // Whenever we commit a tree the treedefinition doesn't seem to get disposed correctly
-        // This leads to an increase in memory usage and ultimately an OutOfMemoryException
-        // The case has been submitted to LibGit2Sharp: https://github.com/libgit2/libgit2sharp/issues/1378
-        int _commitCount = 0;
-        void flushRepo()
-        {
-            _commitCount++;
-            if (_commitCount > 100)
-            {
-                _commitCount = 0;
-                _repo?.Dispose();
-                _repo = new Repository(_path);
             }
         }
 

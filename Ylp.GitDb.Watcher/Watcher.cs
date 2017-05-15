@@ -96,7 +96,7 @@ namespace Ylp.GitDb.Watcher
                 _logger.Info($"Detected a new branch {branch}");
                 var currentCommit = _repo.Lookup<Commit>(branch.Commit);
                 var previousCommit = currentCommit;
-                string baseBranch = null;
+                string baseBranch;
                 _logger.Trace("Searching a base branch");
 
                 do

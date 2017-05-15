@@ -13,7 +13,7 @@ namespace Ylp.GitDb.Local
         readonly Func<string, Author, Task<string>> _commit;
         readonly Func<Task> _abort;
         readonly Func<string, Task> _delete;
-        bool _isOpen = false;
+        bool _isOpen;
 
         public Transaction(Func<Document, Task> add,
                            Func<string, Author, Task<string>> commit,
