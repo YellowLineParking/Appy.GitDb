@@ -22,55 +22,55 @@ namespace Ylp.GitDb.Server
         [HttpGet]
         [Authorize(Roles = "admin, read")]
         public Task<IHttpActionResult> Get(string branch, string key) =>
-            Result(() => _gitDb.Get(branch, key));
+            result(() => _gitDb.Get(branch, key));
 
         [Route("{branch}/documents/{*key}")]
         [HttpGet]
         [Authorize(Roles = "admin, read")]
         public Task<IHttpActionResult> GetFiles(string branch, string key) =>
-            Result(() => _gitDb.GetFiles(branch, key));
+            result(() => _gitDb.GetFiles(branch, key));
 
         [Route("{branch}/document")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> Save(string branch, [FromBody] SaveRequest request) =>
-            Result(() => _gitDb.Save(branch, request.Message, request.Document, request.Author));
+            result(() => _gitDb.Save(branch, request.Message, request.Document, request.Author));
 
         [Route("{branch}/document/delete")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> Delete(string branch, [FromBody] DeleteRequest request) =>
-            Result(() => _gitDb.Delete(branch, request.Key, request.Message, request.Author));
+            result(() => _gitDb.Delete(branch, request.Key, request.Message, request.Author));
 
         [Route("tag")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> Tag([FromBody] Reference reference) =>
-            Result(() => _gitDb.Tag(reference));
+            result(() => _gitDb.Tag(reference));
 
         [Route("branch")]
         [HttpGet]
         [Authorize(Roles = "admin,read")]
         public Task<IHttpActionResult> GetBranches() =>
-            Result(() => _gitDb.GetAllBranches());
+            result(() => _gitDb.GetAllBranches());
 
         [Route("branch")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> CreateBranch([FromBody] Reference reference) =>
-            Result(() => _gitDb.CreateBranch(reference));
+            result(() => _gitDb.CreateBranch(reference));
 
-        static readonly Dictionary<string, ITransaction> transactions = new Dictionary<string, ITransaction>();
+        static readonly Dictionary<string, ITransaction> _transactions = new Dictionary<string, ITransaction>();
 
         [Route("{branch}/transaction")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> CreateTransaction(string branch) =>
-            Result(async () =>
+            result(async () =>
             {
                 var trans = await _gitDb.CreateTransaction(branch);
                 var transactionId = Guid.NewGuid().ToString();
-                transactions.Add(transactionId, trans);
+                _transactions.Add(transactionId, trans);
                 return transactionId;
             });
 
@@ -78,37 +78,37 @@ namespace Ylp.GitDb.Server
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> AddToTransaction(string transactionId, Document document) =>
-            Result(() => transactions[transactionId].Add(document));
+            result(() => _transactions[transactionId].Add(document));
 
         [Route("{transactionId}/addmany")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> AddToTransaction(string transactionId, List<Document> documents) =>
-            Result(() => transactions[transactionId].AddMany(documents));
+            result(() => _transactions[transactionId].AddMany(documents));
 
 
         [Route("{transactionId}/delete/{key}")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> DeleteInTransaction(string transactionId, string key) =>
-            Result(() => transactions[transactionId].Delete(key));
+            result(() => _transactions[transactionId].Delete(key));
 
         [Route("{transactionId}/deleteMany")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> DeleteInTransaction(string transactionId, List<string> keys) =>
-            Result(() => transactions[transactionId].DeleteMany(keys));
+            result(() => _transactions[transactionId].DeleteMany(keys));
 
 
         [Route("{transactionId}/commit")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> CommitTransaction(string transactionId, [FromBody] CommitTransaction commit) =>
-            Result(async () =>
+            result(async () =>
             {
-                var transaction = transactions[transactionId];
+                var transaction = _transactions[transactionId];
                 var sha = await transaction.Commit(commit.Message, commit.Author);
-                transactions.Remove(transactionId);
+                _transactions.Remove(transactionId);
                 return sha;
             });
 
@@ -116,15 +116,15 @@ namespace Ylp.GitDb.Server
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> AbortTransaction(string transactionId) =>
-            Result(async () =>
+            result(async () =>
             {
-                var transaction = transactions[transactionId];
+                var transaction = _transactions[transactionId];
                 await transaction.Abort();
-                transactions.Remove(transactionId);
+                _transactions.Remove(transactionId);
             });
 
 
-        async Task<IHttpActionResult> Result<T>(Func<Task<T>> action)
+        async Task<IHttpActionResult> result<T>(Func<Task<T>> action)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace Ylp.GitDb.Server
             }
         }
 
-        async Task<IHttpActionResult> Result(Func<Task> action)
+        async Task<IHttpActionResult> result(Func<Task> action)
         {
             try
             {
