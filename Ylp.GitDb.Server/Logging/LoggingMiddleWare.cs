@@ -55,6 +55,7 @@ namespace Ylp.GitDb.Server.Logging
             {
                 Level = level,
                 Exception = exception,
+                LoggerName = "http-log",
                 Properties =
                 {
                     { "user", user},
