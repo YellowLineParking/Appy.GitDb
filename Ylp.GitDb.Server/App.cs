@@ -6,10 +6,13 @@ using Autofac;
 using Autofac.Integration.WebApi;
 using Microsoft.Owin.Extensions;
 using Microsoft.Owin.Hosting;
+using NLog;
+using NLog.Config;
 using Owin;
-using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Server.Auth;
+using Ylp.GitDb.Server.Logging;
+using ExceptionLogger = Ylp.GitDb.Server.Logging.ExceptionLogger;
 
 namespace Ylp.GitDb.Server
 {
@@ -19,9 +22,9 @@ namespace Ylp.GitDb.Server
         IContainer _container;
         string _url;
         IEnumerable<User> _users;
-        ILogger _serverLog;
+        Logger _serverLog;
 
-        public static App Create(string url, IGitDb repo, ILogger serverLog, IEnumerable<User> users)
+        public static App Create(string url, IGitDb repo, IEnumerable<User> users)
         {
             var builder = new ContainerBuilder();
             builder.RegisterInstance(repo).As<IGitDb>().ExternallyOwned();
@@ -32,9 +35,9 @@ namespace Ylp.GitDb.Server
                 _container = builder.Build(),
                 _url = url,
                 _users = users,
-                _serverLog = serverLog
+                _serverLog = LogManager.GetLogger("server-log")
             };
-            LoggingMiddleware.Logger = serverLog;
+            LoggingMiddleware.Logger = LogManager.GetLogger("server-log");
             return app;
         }
 
@@ -43,7 +46,9 @@ namespace Ylp.GitDb.Server
             try
             {
                 _serverLog.Info("Starting up git server");
-                return WebApp.Start(new StartOptions(_url), Configuration);
+                var result = WebApp.Start(new StartOptions(_url), Configuration);
+                _serverLog.Info($"Server started on {_url}");
+                return result;
             }
             catch (Exception ex)
             {
@@ -56,7 +61,7 @@ namespace Ylp.GitDb.Server
         public void Configuration(IAppBuilder app)
         {
             var config = new HttpConfiguration();
-            config.Services.Add(typeof(IExceptionLogger), new ExceptionLogger(_serverLog));
+            config.Services.Add(typeof(IExceptionLogger), new ExceptionLogger());
             app.UseAutofacMiddleware(_container);
             var auth = new Authentication(_users);
             app.UseBasicAuthentication("ylp.gitdb", auth.ValidateUsernameAndPassword);

@@ -35,7 +35,7 @@ namespace Ylp.GitDb.Benchmark
             Console.WriteLine("| BATCH SIZE | KEY SIZE | REPOSITORY SIZE | WRITES/SECOND |");
             Console.WriteLine("-----------------------------------------------------------");
 
-            Func<IGitDb> db = () => new LocalGitDb("TestRepo", Log.Create("measure"));
+            Func<IGitDb> db = () => new LocalGitDb("TestRepo");
             currentEntries.Add(new CsvEntry
             {
                 ComputerName = computerName,

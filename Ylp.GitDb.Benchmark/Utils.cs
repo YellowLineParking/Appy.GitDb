@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using LibGit2Sharp;
-using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Local;
 using Reference = Ylp.GitDb.Core.Model.Reference;
@@ -40,7 +39,7 @@ namespace Ylp.GitDb.Benchmark
             const int batchSize = 10000;
             const int documentCount = 1000 * 1000;
             var index = 0;
-            var db = new LocalGitDb(directory, Log.Create("git-repository"));
+            var db = new LocalGitDb(directory);
             var author = new Author("name", "email");
             foreach (var batch in GenerateItems(documentCount, 3, batchSize))
             {

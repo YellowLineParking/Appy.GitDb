@@ -70,12 +70,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.11\lib\net45\NLog.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NLog.Targets.Syslog, Version=2.1.6030.21112, Culture=neutral, PublicKeyToken=a15d6ba50060b73f, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.Targets.Syslog.2.1.6030.21112\lib\net45\NLog.Targets.Syslog.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\NLog.4.4.9\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -114,9 +109,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\Authentication.cs" />
-    <Compile Include="ExceptionLogger.cs" />
+    <Compile Include="Logging\CorrelationIdRenderer.cs" />
+    <Compile Include="Logging\ExceptionLogger.cs" />
     <Compile Include="GitApi.cs" />
-    <Compile Include="LoggingMiddleWare.cs" />
+    <Compile Include="Logging\LogContext.cs" />
+    <Compile Include="Logging\LoggingMiddleWare.cs" />
+    <Compile Include="Logging\ExceptionLayoutRenderer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="App.cs" />
@@ -125,6 +123,7 @@
     <None Include="App.config" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>

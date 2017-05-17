@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using LibGit2Sharp;
-using Ylp.GitDb.Core;
+using NLog;
 
 namespace Ylp.GitDb.Watcher
 {
@@ -13,7 +13,7 @@ namespace Ylp.GitDb.Watcher
 
     public class Watcher : IDisposable
     {
-        readonly ILogger _logger;
+        readonly Logger _logger;
         readonly int _interval;
         readonly Repository _repo;
         Timer _timer;
@@ -23,9 +23,9 @@ namespace Ylp.GitDb.Watcher
         public event BranchRemovedHandler BranchRemoved;
         public event BranchChangedHandler BranchChanged;
 
-        public Watcher(string path, ILogger logger, int interval)
+        public Watcher(string path, int interval)
         {
-            _logger = logger;
+            _logger = LogManager.GetLogger("watcher");
             _interval = interval;
             _repo = new Repository(path);
             _branches = _repo.Branches

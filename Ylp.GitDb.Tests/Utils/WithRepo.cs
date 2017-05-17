@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Castle.Core.Internal;
 using LibGit2Sharp;
 using Microsoft.Owin.Testing;
-using Moq.AutoMock;
 using Xunit;
-using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Local;
@@ -56,11 +54,11 @@ namespace Ylp.GitDb.Tests.Utils
         public async Task InitializeAsync()
         {
             const string url = "http://localhost"; // this is a dummy url, requests are in-memory, not over the network
-            var app = App.Create(url, new LocalGitDb(LocalPath, new AutoMocker().Get<ILogger>()), new AutoMocker().Get<ILogger>(), _users);
+            var app = App.Create(url, new LocalGitDb(LocalPath), _users);
             _server = TestServer.Create(app.Configuration);
             _client = _server.HttpClient;
             WithUser(Admin);     
-            Subject = new RemoteGitDb(_client, url);
+            Subject = new RemoteGitDb(_client);
             Repo = new Repository(LocalPath);
             await Because();
         }

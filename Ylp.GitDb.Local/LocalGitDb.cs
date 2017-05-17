@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using LibGit2Sharp;
 using LibGit2Sharp.Handlers;
 using Newtonsoft.Json;
-using Ylp.GitDb.Core;
+using NLog;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
 using Reference = Ylp.GitDb.Core.Model.Reference;
@@ -17,7 +17,7 @@ namespace Ylp.GitDb.Local
 {
     public class LocalGitDb : IGitDb
     {
-        readonly ILogger _logger;
+        readonly Logger _logger;
         readonly string _remoteUrl;
         readonly string _userName;
         readonly Repository _repo;
@@ -25,9 +25,10 @@ namespace Ylp.GitDb.Local
         readonly Dictionary<string, object> _branchLocks;
         readonly PushOptions _pushOptions;
 
-        public LocalGitDb(string path, ILogger logger, string remoteUrl = null, string userName = null, string userEmail = null, string password = null)
+        public LocalGitDb(string path, string remoteUrl = null, string userName = null, string userEmail = null, string password = null)
         {
-            _logger = logger;
+            _logger = LogManager.GetCurrentClassLogger();
+            
             _remoteUrl = string.IsNullOrEmpty(remoteUrl) ? null : remoteUrl;
             _userName = string.IsNullOrEmpty(userName) ? null : userName;
             userEmail = string.IsNullOrEmpty(userEmail) ? null : userEmail;
@@ -42,12 +43,12 @@ namespace Ylp.GitDb.Local
             {
                 if (_remoteUrl != null)
                 {
-                    _logger.Trace($"No repsotiory exists on disk, cloning the repo from {_remoteUrl}");
+                    _logger.Trace($"No repository exists on disk and there's a remote URL, cloning the repo from {_remoteUrl}");
                     Repository.Clone(_remoteUrl, path, new CloneOptions {IsBare = true, CredentialsProvider = credentials});
                 }
                 else
                 {
-                    _logger.Trace($"No repsotiory exists on disk, initializing a bare repository at {path}");
+                    _logger.Trace($"No repository exists on disk and there's not remote URL, initializing a bare repository at {path}");
                     Repository.Init(path, true);
                 }
             }
@@ -129,12 +130,12 @@ namespace Ylp.GitDb.Local
 
         public Task<IReadOnlyCollection<string>> GetFiles(string branch, string key) =>
             Task.FromResult((IReadOnlyCollection<string>) (
-                (_repo.Branches[branch].Tip[key].Target as Tree)?
-                     .Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
-                     .Select(entry => entry.Target)
-                     .Cast<Blob>()
-                     .Select(blob => blob.GetContentText())
-                     .ToList() ?? 
+                (_repo.Branches[branch]?.Tip[key]?.Target as Tree)?
+                      .Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
+                      .Select(entry => entry.Target)
+                      .Cast<Blob>()
+                      .Select(blob => blob.GetContentText())
+                      .ToList() ?? 
                 new List<string>()));
 
         public Task<string> Save(string branch, string message, Document document, Author author)
@@ -182,13 +183,19 @@ namespace Ylp.GitDb.Local
             }
         }
 
-        public Task Tag(Reference reference) =>
-            Task.FromResult(_repo.Tags.Add(reference.Name, reference.Pointer));
+        public Task Tag(Reference reference)
+        {
+            var result = _repo.Tags.Add(reference.Name, reference.Pointer);
+            _logger.Trace($"Created tag {reference.Name} at commit {reference.Pointer}");
+            return Task.FromResult(result);
+        }
+            
 
         public Task CreateBranch(Reference reference)
         {
             _repo.Branches.Add(reference.Name, reference.Pointer);
             _branchLocks.Add(reference.Name, new object());
+            _logger.Trace($"Created branch {reference.Name} at commit {reference.Pointer}");
             push(reference.Name);
             return Task.CompletedTask;
         }
@@ -246,11 +253,12 @@ namespace Ylp.GitDb.Local
 
             Task.Run(() =>
             {
-                _logger.Info($"Pushing branch {branch} to {_remoteUrl} with user name {_userName}");
+                _logger.Trace($"Pushing branch {branch} to {_remoteUrl} with user name {_userName}");
 
                 var localBranch = _repo.Branches[branch];
                 _repo.Branches.Update(localBranch, b => b.Remote = "origin", b => b.UpstreamBranch = localBranch.CanonicalName);
                 _repo.Network.Push(localBranch, _pushOptions);
+                _logger.Trace($"Pushed branch {branch} to {_remoteUrl} with user name {_userName}");
             });
         }
 

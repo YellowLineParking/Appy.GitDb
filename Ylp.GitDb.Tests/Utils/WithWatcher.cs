@@ -6,9 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using LibGit2Sharp;
-using Moq.AutoMock;
 using Xunit;
-using Ylp.GitDb.Core;
 using Ylp.GitDb.Core.Interfaces;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Local;
@@ -40,10 +38,10 @@ namespace Ylp.GitDb.Tests.Utils
 
         public async Task InitializeAsync()
         {
-            GitDb = new LocalGitDb(_localPath, new AutoMocker().Get<ILogger>());
+            GitDb = new LocalGitDb(_localPath);
             Repo = new Repository(_localPath);
             await Setup();
-            Subject = new GitDb.Watcher.Watcher(_localPath, new AutoMocker().Get<ILogger>(), 1);
+            Subject = new GitDb.Watcher.Watcher(_localPath, 1);
             Subject.MonitorEvents();
             Subject.Start(new List<BranchInfo>());
             await Because();
