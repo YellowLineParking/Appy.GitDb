@@ -41,12 +41,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BranchDictionary.cs" />
@@ -54,12 +48,6 @@
     <Compile Include="ItemDetails.cs" />
     <Compile Include="Watcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Ylp.GitDb.Core\Ylp.GitDb.Core.csproj">
-      <Project>{72ae8930-98ef-446d-8167-7dd251bcf4e6}</Project>
-      <Name>Ylp.GitDb.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
