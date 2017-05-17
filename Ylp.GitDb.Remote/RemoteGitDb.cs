@@ -15,30 +15,25 @@ namespace Ylp.GitDb.Remote
     public class RemoteGitDb : IGitDb
     {
         readonly HttpClient _client;
-        readonly string _baseUrl;
 
-        public RemoteGitDb(HttpClient client, string url)
+        public RemoteGitDb(HttpClient client)
         {
-            _baseUrl = url;
             _client = client;
         }
 
         public RemoteGitDb(string userName, string password, string url)
         {
-            _baseUrl = url;
-            _client = new HttpClient();
+            _client = new HttpClient{BaseAddress = new Uri(url)};
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}")));
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        string url(string resource) =>
-            _baseUrl + resource;
 
         string urlEncode(string value) =>
             HttpUtility.UrlEncode(value);
 
         public Task<string> Get(string branch, string key) =>
-            _client.GetAsync<string>(url($"/{branch}/document/{urlEncode(key)}"));
+            _client.GetAsync<string>($"/{branch}/document/{urlEncode(key)}");
 
         public async Task<T> Get<T>(string branch, string key) where T : class
         {
@@ -49,15 +44,15 @@ namespace Ylp.GitDb.Remote
         }
 
         public async Task<IReadOnlyCollection<T>> GetFiles<T>(string branch, string key) =>
-            (await _client.GetAsync<List<string>>(url($"/{branch}/documents/{key}")))
+            (await _client.GetAsync<List<string>>($"/{branch}/documents/{key}"))
                           .Select(JsonConvert.DeserializeObject<T>)
                           .ToArray();
 
         public async Task<IReadOnlyCollection<string>> GetFiles(string branch, string key) =>
-            await _client.GetAsync<List<string>>(url($"/{branch}/documents/{key}"));
+            await _client.GetAsync<List<string>>($"/{branch}/documents/{key}");
 
         public Task<string> Save(string branch, string message, Document document, Author author) =>
-            _client.PostAsync(url($"/{branch}/document"), new SaveRequest
+            _client.PostAsync($"/{branch}/document", new SaveRequest
             {
                 Message = message,
                 Document = document,
@@ -68,7 +63,7 @@ namespace Ylp.GitDb.Remote
             Save(branch, message, Document.From(document), author);
 
         public Task<string> Delete(string branch, string key, string message, Author author) =>
-             _client.PostAsync(url($"/{branch}/document/delete"), new DeleteRequest
+             _client.PostAsync($"/{branch}/document/delete", new DeleteRequest
              {
                  Message = message,
                  Key = key,
@@ -76,16 +71,16 @@ namespace Ylp.GitDb.Remote
              }).AsStringResponse();       
 
         public Task Tag(Reference reference) =>
-            _client.PostAsync(url("/tag"), reference);
+            _client.PostAsync("/tag", reference);
 
         public Task CreateBranch(Reference reference) =>
-            _client.PostAsync(url("/branch"), reference);
+            _client.PostAsync("/branch", reference);
 
         public Task<IEnumerable<string>> GetAllBranches() =>
-            _client.GetAsync<IEnumerable<string>>(url("/branch"));
+            _client.GetAsync<IEnumerable<string>>("/branch");
 
         public async Task<ITransaction> CreateTransaction(string branch) =>
-            await RemoteTransaction.Create(_client, _baseUrl, branch);
+            await RemoteTransaction.Create(_client, branch);
 
         public void Dispose() => 
             _client.Dispose();
