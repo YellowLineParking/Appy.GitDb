@@ -41,7 +41,7 @@ namespace Ylp.GitDb.Local
 
             if (!Directory.Exists(path))
             {
-                if (_remoteUrl != null)
+                if (!string.IsNullOrEmpty(_remoteUrl))
                 {
                     _logger.Trace($"No repository exists on disk and there's a remote URL, cloning the repo from {_remoteUrl}");
                     Repository.Clone(_remoteUrl, path, new CloneOptions {IsBare = true, CredentialsProvider = credentials});
