@@ -93,7 +93,7 @@ namespace Ylp.GitDb.Watcher
         {
             try
             {
-                _logger.Info($"Detected a new branch {branch}");
+                _logger.Info($"Detected a new branch {branch.Name}");
                 var currentCommit = _repo.Lookup<Commit>(branch.Commit);
                 var previousCommit = currentCommit;
                 string baseBranch;
@@ -108,7 +108,7 @@ namespace Ylp.GitDb.Watcher
 
                 if (previousCommit == null)
                 {
-                    var otherBranch = _repo.Branches.FirstOrDefault(b => b.FriendlyName != branch.Name);
+                    var otherBranch = _repo.Branches.FirstOrDefault(b => b.FriendlyName != branch.Name && !b.IsRemote);
                     if (otherBranch != null)
                     {
                         previousCommit = otherBranch.Tip;
@@ -123,7 +123,7 @@ namespace Ylp.GitDb.Watcher
                 }
                 else
                 {
-                    _logger.Trace($"Found base branch {baseBranch} for {branch}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
+                    _logger.Trace($"Found base branch {baseBranch} for {branch.Name}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                 }
 
                 var result = _repo.Diff.Compare<TreeChanges>(previousCommit.Tree, currentCommit.Tree);
