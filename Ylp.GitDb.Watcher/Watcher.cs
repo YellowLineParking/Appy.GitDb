@@ -101,7 +101,7 @@ namespace Ylp.GitDb.Watcher
 
                 do
                 {
-                    baseBranch = _repo.Branches.FirstOrDefault(b => b.Tip.Sha == previousCommit.Sha && b.FriendlyName != branch.Name)?.FriendlyName;
+                    baseBranch = _repo.Branches.FirstOrDefault(b => b.Tip.Sha == previousCommit.Sha && b.FriendlyName != branch.Name && !b.IsRemote)?.FriendlyName;
                     if (baseBranch == null)
                         previousCommit = previousCommit.Parents.FirstOrDefault();
                 } while (baseBranch == null && previousCommit != null);
@@ -113,12 +113,13 @@ namespace Ylp.GitDb.Watcher
                     {
                         previousCommit = otherBranch.Tip;
                         baseBranch = otherBranch.FriendlyName;
-                        _logger.Trace($"Could not find a base branch for the newly created branch {branch}, taking {baseBranch} and starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
+                        _logger.Trace($"Could not find a base branch for the newly created branch {branch.Name}, taking {baseBranch} and starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                     }
                     else
                     {
-                        _logger.Error($"Could not find any base branch for the newly created branch {branch}, skipping raising an event");
-                        return;
+                        _logger.Trace($"Could not find any base branch for the newly created branch {branch.Name}, diffing vs the very first commit");
+                        baseBranch = null;
+                        previousCommit = _repo.Branches.First(b => b.FriendlyName == branch.Name).Commits.Last();
                     }
                 }
                 else

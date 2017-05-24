@@ -10,10 +10,10 @@ namespace Ylp.GitDb.Watcher
 
     public class BranchModification : BranchEvent
     {
-        public List<ItemAdded> Added { get; set; }
-        public List<ItemModified> Modified { get; set; }
-        public List<ItemDeleted> Deleted { get; set; }
-        public List<ItemRenamed> Renamed { get; set; }
+        public List<ItemAdded> Added { get; set; } = new List<ItemAdded>();
+        public List<ItemModified> Modified { get; set; } = new List<ItemModified>();
+        public List<ItemDeleted> Deleted { get; set; } = new List<ItemDeleted>();
+        public List<ItemRenamed> Renamed { get; set; } = new List<ItemRenamed>();
     }
     public class BranchAdded : BranchModification
     {

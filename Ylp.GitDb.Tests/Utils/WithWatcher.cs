@@ -40,6 +40,8 @@ namespace Ylp.GitDb.Tests.Utils
         {
             GitDb = new LocalGitDb(_localPath);
             Repo = new Repository(_localPath);
+            await Task.WhenAll(Enumerable.Range(0, 20)
+                                         .Select(i => GitDb.Save("master", $"Commit {i}", new Document{Key = $"{i}.json", Value = i.ToString()},Author )));
             await Setup();
             Subject = new GitDb.Watcher.Watcher(_localPath, 1);
             Subject.MonitorEvents();
