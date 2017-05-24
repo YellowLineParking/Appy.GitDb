@@ -255,10 +255,17 @@ namespace Ylp.GitDb.Local
             {
                 _logger.Trace($"Pushing branch {branch} to {_remoteUrl} with user name {_userName}");
 
-                var localBranch = _repo.Branches[branch];
-                _repo.Branches.Update(localBranch, b => b.Remote = "origin", b => b.UpstreamBranch = localBranch.CanonicalName);
-                _repo.Network.Push(localBranch, _pushOptions);
-                _logger.Trace($"Pushed branch {branch} to {_remoteUrl} with user name {_userName}");
+                try
+                {
+                    var localBranch = _repo.Branches[branch];
+                    _repo.Branches.Update(localBranch, b => b.Remote = "origin", b => b.UpstreamBranch = localBranch.CanonicalName);
+                    _repo.Network.Push(localBranch, _pushOptions);
+                    _logger.Trace($"Pushed branch {branch} to {_remoteUrl} with user name {_userName}");
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e);
+                }
             });
         }
 
