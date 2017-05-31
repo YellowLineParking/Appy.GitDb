@@ -9,7 +9,7 @@ using Reference = Ylp.GitDb.Core.Model.Reference;
 
 namespace Ylp.GitDb.Tests
 {
-    public class WhenThereAreNoConflicts : WithRepo
+    public class MergingWhenThereAreNoConflicts : WithRepo
     {
         int _index;
         readonly List<int> _addedFiles = new List<int>();
@@ -69,14 +69,14 @@ namespace Ylp.GitDb.Tests
 
 
         [Fact]
-        public async Task ContainsAllAddedFiles() =>
+        public async Task AddsTheCorrectFilesToMaster() =>
             (await Subject.GetFiles("master", "file"))
                           .Select(int.Parse)
                           .Should()
                           .Contain(_addedFiles);
 
         [Fact]
-        public async Task DoesNotContainAnyRemovedFiles() =>
+        public async Task RemovesTheCorrectFilesFromMaster() =>
             (await Subject.GetFiles("master", "file"))
                           .Select(int.Parse)
                           .Should()
@@ -88,11 +88,11 @@ namespace Ylp.GitDb.Tests
                                    .Should().Be(_commitBeforeSecondMerge);
 
         [Fact]
-        public async Task DeletesTheBranches() =>
+        public async Task DeletesTheMergedBranches() =>
            (await Subject.GetAllBranches()).Should().NotContain(new[]{"test", "test2"});
     }
 
-    public class WhenThereAreNoChanges : WithRepo
+    public class MergingWhenThereAreNoChanges : WithRepo
     {
         string _masterCommit;
         protected override async Task Because()
@@ -105,7 +105,6 @@ namespace Ylp.GitDb.Tests
             await Subject.CreateBranch(new Reference { Name = "test", Pointer = "master" });
             
             await Subject.MergeBranch("test", "master", Author, "This is the merge commit for branch test");
-            MoveToNormalRepo("d:\\testmerge");
         }
 
         [Fact]
@@ -114,7 +113,7 @@ namespace Ylp.GitDb.Tests
                                    .Should().Be(_masterCommit);
 
         [Fact]
-        public async Task DeletesTheOriginalBranch() =>
+        public async Task DeletesTheMergedBranch() =>
             (await Subject.GetAllBranches()).Should().NotContain("test");
     }
 }
