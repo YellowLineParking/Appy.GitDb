@@ -84,5 +84,10 @@ namespace Ylp.GitDb.Remote
 
         public void Dispose() => 
             _client.Dispose();
+
+        public Task<string> MergeBranch(string source, string target, Author author, string message) =>
+            _client.PostAsync("/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
+                   .WhenSuccessful()
+                   .AsStringResponse();
     }
 }

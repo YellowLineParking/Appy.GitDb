@@ -111,6 +111,7 @@
     <Compile Include="GettingAValue.cs" />
     <Compile Include="DeletingAValue.cs" />
     <Compile Include="Branching.cs" />
+    <Compile Include="Merging.cs" />
     <Compile Include="Tagging.cs" />
     <Compile Include="Transactions.cs" />
     <Compile Include="Utils\Behaviors.cs" />
