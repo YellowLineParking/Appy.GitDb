@@ -69,6 +69,7 @@ namespace Ylp.GitDb.Server
             config.DependencyResolver = new AutofacWebApiDependencyResolver(_container);
             
             app.Use<LoggingMiddleware>();
+            app.UseCompressionModule(OwinCompression.DefaultCompressionSettings);
             app.UseStageMarker(PipelineStage.MapHandler);
             app.UseWebApi(config);
         }
