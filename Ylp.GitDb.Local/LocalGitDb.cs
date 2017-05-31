@@ -223,6 +223,8 @@ namespace Ylp.GitDb.Local
                     throw new NotSupportedException(logMessage);
                 }
 
+                _repo.Branches.Remove(sourceBranch);
+
                 var previousCommit = targetBranch.Tip;
                 var tree = mergeRes.Tree;
 
@@ -233,8 +235,6 @@ namespace Ylp.GitDb.Local
                 var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
 
                 _repo.Refs.UpdateTarget(_repo.Refs[targetBranch.CanonicalName], commit.Id);
-
-                _repo.Branches.Remove(sourceBranch);
 
                 _logger.Trace($"Squashed and merged {source} into {target} and removed {source} with message {message}");
 

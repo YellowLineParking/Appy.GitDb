@@ -5,6 +5,7 @@ using FluentAssertions;
 using Xunit;
 using Ylp.GitDb.Core.Model;
 using Ylp.GitDb.Tests.Utils;
+using Reference = Ylp.GitDb.Core.Model.Reference;
 
 namespace Ylp.GitDb.Tests
 {
@@ -13,6 +14,7 @@ namespace Ylp.GitDb.Tests
         int _index;
         readonly List<int> _addedFiles = new List<int>();
         readonly List<int> _removedFiles = new List<int>();
+        string _commitBeforeSecondMerge;
         protected override async Task Because()
         {
             await addItems("master");
@@ -38,6 +40,9 @@ namespace Ylp.GitDb.Tests
             await addItems("test2");
 
             await Subject.MergeBranch("test2", "master", Author, "This is the merge commit for branch test2");
+
+            _commitBeforeSecondMerge = Repo.Branches["master"].Tip.Sha;
+
             await Subject.MergeBranch("test", "master", Author, "This is the merge commit for branch test");
         }
 
@@ -76,5 +81,40 @@ namespace Ylp.GitDb.Tests
                           .Select(int.Parse)
                           .Should()
                           .NotContain(_removedFiles);
+
+        [Fact]
+        public void CreatesOnlyOneCommitOnMaster() =>
+            Repo.Branches["master"].Commits.Skip(1).Take(1).Single().Sha
+                                   .Should().Be(_commitBeforeSecondMerge);
+
+        [Fact]
+        public async Task DeletesTheBranches() =>
+           (await Subject.GetAllBranches()).Should().NotContain(new[]{"test", "test2"});
+    }
+
+    public class WhenThereAreNoChanges : WithRepo
+    {
+        string _masterCommit;
+        protected override async Task Because()
+        {
+            foreach (var i in Enumerable.Range(0, 5))
+                await Subject.Save("master", $"Added {i} (master)", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
+
+            _masterCommit = Repo.Branches["master"].Tip.Sha;
+
+            await Subject.CreateBranch(new Reference { Name = "test", Pointer = "master" });
+            
+            await Subject.MergeBranch("test", "master", Author, "This is the merge commit for branch test");
+            MoveToNormalRepo("d:\\testmerge");
+        }
+
+        [Fact]
+        public void DoesNotCreateACommitOnMaster() =>
+            Repo.Branches["master"].Tip.Sha
+                                   .Should().Be(_masterCommit);
+
+        [Fact]
+        public async Task DeletesTheOriginalBranch() =>
+            (await Subject.GetAllBranches()).Should().NotContain("test");
     }
 }
