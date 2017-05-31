@@ -29,9 +29,11 @@ namespace Ylp.GitDb.Tests
 
             await addItems("test");
 
-            await removeItems("test", 16, 2);
-
             await removeItems("master", 1, 2);
+
+            await removeItems("test", 8, 2);
+
+            await removeItems("test2", 13, 2);
 
             await addItems("test2");
 
