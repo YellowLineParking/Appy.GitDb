@@ -190,7 +190,6 @@ namespace Ylp.GitDb.Local
             return Task.FromResult(result);
         }
             
-
         public Task CreateBranch(Reference reference)
         {
             _repo.Branches.Add(reference.Name, reference.Pointer);
@@ -198,6 +197,51 @@ namespace Ylp.GitDb.Local
             _logger.Trace($"Created branch {reference.Name} at commit {reference.Pointer}");
             push(reference.Name);
             return Task.CompletedTask;
+        }
+
+        public Task<string> MergeBranch(string source, string target, Author author, string message)
+        {
+            
+            var signature = getSignature(author);
+            var targetBranch = _repo.Branches[target];
+            var sourceBranch = _repo.Branches[source];
+
+            if (_branchesWithTransaction.Contains(target))
+            {
+                var exceptionMessage = $"There is a transaction in progress for branch {target}. Complete the transaction first.";
+                _logger.Warn(exceptionMessage);
+                throw new ArgumentException(exceptionMessage);
+            }
+
+            lock (getLock(target))
+            {
+                var mergeRes = _repo.ObjectDatabase.MergeCommits(sourceBranch.Tip, targetBranch.Tip, new MergeTreeOptions { FailOnConflict = true });
+                if (mergeRes.Status != MergeTreeStatus.Succeeded)
+                {
+                    var logMessage = $"Could not merge {source} into {target} because of conflicts. Please merge manually";
+                    _logger.Trace(message);
+                    throw new NotSupportedException(logMessage);
+                }
+
+                var previousCommit = targetBranch.Tip;
+                var tree = mergeRes.Tree;
+
+                if (previousCommit != null && previousCommit.Tree.Id == tree.Id)
+                    return Task.FromResult(string.Empty);
+
+                var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
+                var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
+
+                _repo.Refs.UpdateTarget(_repo.Refs[targetBranch.CanonicalName], commit.Id);
+
+                _repo.Branches.Remove(sourceBranch);
+
+                _logger.Trace($"Squashed and merged {source} into {target} and removed {source} with message {message}");
+
+                push(target);
+
+                return Task.FromResult(commit.Sha);
+            }
         }
 
         public Task<IEnumerable<string>> GetAllBranches() =>

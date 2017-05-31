@@ -22,5 +22,7 @@ namespace Ylp.GitDb.Core.Interfaces
         Task CreateBranch(Reference reference);
         Task<IEnumerable<string>> GetAllBranches();
         Task<ITransaction> CreateTransaction(string branch);
+
+        Task<string> MergeBranch(string source, string target, Author author, string message);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -70,6 +71,19 @@ namespace Ylp.GitDb.Tests.Utils
             Repo.Dispose();
             deleteReadOnlyDirectory(LocalPath);
             return Task.CompletedTask;
+        }
+
+        // Use this method to inspect the resulting repository
+        protected void MoveToNormalRepo(string baseDir)
+        {
+            if (Directory.Exists(baseDir))
+                deleteReadOnlyDirectory(baseDir);
+
+            Repository.Clone(LocalPath, baseDir, new CloneOptions
+            {
+                BranchName = "master",
+                IsBare = false
+            });
         }
     }
 }

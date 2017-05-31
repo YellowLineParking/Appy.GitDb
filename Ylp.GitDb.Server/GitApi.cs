@@ -123,6 +123,12 @@ namespace Ylp.GitDb.Server
                 _transactions.Remove(transactionId);
             });
 
+        [Route("merge")]
+        [HttpPost]
+        [Authorize(Roles = "admin,write")]
+        public Task<IHttpActionResult> Merge(MergeRequest mergeRequest) =>
+           result(() =>_gitDb.MergeBranch(mergeRequest.Source, mergeRequest.Target, mergeRequest.Author, mergeRequest.Message));
+
 
         async Task<IHttpActionResult> result<T>(Func<Task<T>> action)
         {
@@ -131,6 +137,10 @@ namespace Ylp.GitDb.Server
                 return Ok(await action());
             }
             catch (ArgumentException ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest) {Content = new StringContent(ex.Message)});
+            }
+            catch (NotSupportedException ex)
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StringContent(ex.Message) });
             }
@@ -146,6 +156,10 @@ namespace Ylp.GitDb.Server
             catch (ArgumentException ex)
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest) {Content = new StringContent(ex.Message)});
+            }
+            catch (NotSupportedException ex)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StringContent(ex.Message) });
             }
         }
 
