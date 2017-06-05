@@ -246,7 +246,16 @@ namespace Ylp.GitDb.Local
 
         public Task DeleteBranch(string branch)
         {
-            _repo.Branches.Remove(branch);
+            if (!_branchLocks.ContainsKey(branch))
+                _branchLocks.Add(branch, new object());
+
+            lock (_branchLocks[branch])
+            {
+                _repo.Branches.Remove(branch);
+                if (_branchLocks.ContainsKey(branch))
+                    _branchLocks.Remove(branch);
+            }
+
             return Task.CompletedTask;
         }
 
