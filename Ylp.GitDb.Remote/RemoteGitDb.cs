@@ -68,13 +68,16 @@ namespace Ylp.GitDb.Remote
                  Message = message,
                  Key = key,
                  Author = author
-             }).AsStringResponse();       
+             }).WhenSuccessful()
+               .AsStringResponse();       
 
         public Task Tag(Reference reference) =>
-            _client.PostAsync("/tag", reference);
+            _client.PostAsync("/tag", reference)
+                   .WhenSuccessful();
 
         public Task CreateBranch(Reference reference) =>
-            _client.PostAsync("/branch", reference);
+            _client.PostAsync("/branch", reference)
+                   .WhenSuccessful();
 
         public Task<IEnumerable<string>> GetAllBranches() =>
             _client.GetAsync<IEnumerable<string>>("/branch");
@@ -89,5 +92,9 @@ namespace Ylp.GitDb.Remote
             _client.PostAsync("/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
                    .WhenSuccessful()
                    .AsStringResponse();
+
+        public Task DeleteBranch(string branch) =>
+            _client.DeleteAsync(branch)
+                   .WhenSuccessful();
     }
 }

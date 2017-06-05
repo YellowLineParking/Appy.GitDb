@@ -244,6 +244,12 @@ namespace Ylp.GitDb.Local
             }
         }
 
+        public Task DeleteBranch(string branch)
+        {
+            _repo.Branches.Remove(branch);
+            return Task.CompletedTask;
+        }
+
         public Task<IEnumerable<string>> GetAllBranches() =>
             Task.FromResult(_repo.Branches.Where(b => !b.IsRemote).Select(b => b.FriendlyName));
 
