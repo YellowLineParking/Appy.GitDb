@@ -74,6 +74,12 @@ namespace Ylp.GitDb.Server
                 return transactionId;
             });
 
+        [Route("{branch}")]
+        [HttpDelete]
+        [Authorize(Roles = "admin,write")]
+        public Task<IHttpActionResult> DeleteBranch(string branch) =>
+           result(() => _gitDb.DeleteBranch(branch));
+
         [Route("{transactionId}/add")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
