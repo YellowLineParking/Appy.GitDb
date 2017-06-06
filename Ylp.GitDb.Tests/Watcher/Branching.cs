@@ -48,7 +48,7 @@ namespace Ylp.GitDb.Tests.Watcher
         protected override Task Because()
         {
             Repo.Branches.Remove("master");
-            return base.Because();
+            return Task.CompletedTask;
         }
 
         [Fact]

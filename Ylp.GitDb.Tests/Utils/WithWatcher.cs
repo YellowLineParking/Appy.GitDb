@@ -47,7 +47,7 @@ namespace Ylp.GitDb.Tests.Utils
             Subject.MonitorEvents();
             Subject.Start(new List<BranchInfo>());
             await Because();
-            Thread.Sleep(150);
+            Thread.Sleep(500);
         }
 
         public Task DisposeAsync()
