@@ -18,59 +18,54 @@ namespace Ylp.GitDb.Tests
         string _commitBeforeSecondMerge;
         protected override async Task Because()
         {
-            Console.WriteLine("Commit on master: " + await addItems("master"));
+            await addItems("master");
 
             await Subject.CreateBranch(new Reference {Name = "test", Pointer = "master"});
 
-            Console.WriteLine("Commit on test: " + await addItems("test"));
+            await addItems("test");
 
-            Console.WriteLine("Commit on master: " + await addItems("master"));
+            await addItems("master");
 
             await Subject.CreateBranch(new Reference { Name = "test2", Pointer = "master" });
 
-            Console.WriteLine("Commit on test2: " + await addItems("test2"));
+            await addItems("test2");
 
-            Console.WriteLine("Commit on test: " + await addItems("test"));
+            await addItems("test");
 
-            Console.WriteLine("Commit on master: " + await removeItems("master", 1, 2));
+            await removeItems("master", 1, 2);
 
-            Console.WriteLine("Commit on test: " + await removeItems("test", 8, 2));
+            await removeItems("test", 8, 2);
 
-            Console.WriteLine("Commit on test2: " + await removeItems("test2", 13, 2));
+            await removeItems("test2", 13, 2);
 
-            Console.WriteLine("Commit on test2: " + await addItems("test2"));
+            await addItems("test2");
 
-            Console.WriteLine("Merge test2: " + await Subject.MergeBranch("test2", "master", Author, "This is the merge commit for branch test2"));
+            await Subject.MergeBranch("test2", "master", Author, "This is the merge commit for branch test2");
 
             _commitBeforeSecondMerge = Repo.Branches["master"].Tip.Sha;
-            Console.WriteLine("Commit before second merge: " + _commitBeforeSecondMerge);
 
-            Console.WriteLine("Merge test: " + await Subject.MergeBranch("test", "master", Author, "This is the merge commit for branch test"));
+            await Subject.MergeBranch("test", "master", Author, "This is the merge commit for branch test");
         }
 
-        async Task<string> addItems(string branch)
+        async Task addItems(string branch)
         {
-            var latestCommit = string.Empty;
             foreach (var i in Enumerable.Range(_index, 5))
             {
-                latestCommit = await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
                 _removedFiles.Remove(i);
                 _addedFiles.Add(i);
             }
             _index += 5;
-            return latestCommit;
         }
 
-        async Task<string> removeItems(string branch, int start, int count)
+        async Task removeItems(string branch, int start, int count)
         {
-            var latestCommit = string.Empty;
             foreach (var i in Enumerable.Range(start, count))
             {
-                latestCommit = await Subject.Delete(branch, $"file\\key {i}", $"Deleted {i}({branch})", Author);
+                await Subject.Delete(branch, $"file\\key {i}", $"Deleted {i}({branch})", Author);
                 _addedFiles.Remove(i);
                 _removedFiles.Add(i);
             }
-            return latestCommit;
         }
 
 
@@ -90,7 +85,7 @@ namespace Ylp.GitDb.Tests
 
         [Fact]
         public void CreatesOnlyOneCommitOnMaster() =>
-            Repo.Branches["master"].Commits.Skip(1).Take(1).Single().Sha
+            Repo.Branches["master"].Tip.Parents.Single().Sha
                                    .Should().Be(_commitBeforeSecondMerge);
 
         [Fact]
