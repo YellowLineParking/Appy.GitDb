@@ -96,5 +96,10 @@ namespace Ylp.GitDb.Remote
         public Task DeleteBranch(string branch) =>
             _client.DeleteAsync(branch)
                    .WhenSuccessful();
+
+        public Task CloseTransactions(string branch) =>
+             _client.PostAsync($"/{branch}/transactions/close", null)
+                    .WhenSuccessful()
+                    .AsStringResponse();
     }
 }
