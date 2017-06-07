@@ -174,4 +174,25 @@ namespace Ylp.GitDb.Tests
         public void DoesNotCreateACommit() =>
             Repo.Branches[Branch].Tip.Message.Should().NotBe(Message);
     }
+
+    public class AbortingAllTransactionsForABranch : WithRepo
+    {
+        const string Branch = "master";
+        const string Key = "key";
+        protected override async Task Because()
+        {
+            var t = await Subject.CreateTransaction("master");
+            await t.Add(new Document { Key = Key, Value = "value" });
+
+            await Subject.CloseTransactions(Branch);
+        }
+
+        [Fact]
+        public void DoesNotCreateACommit() =>
+            Subject.Get(Branch, Key).Result.Should().BeNull();
+
+        [Fact]
+        public async Task AllowsOpeningANewTransaction() =>
+            (await Catch<Exception>(() => Subject.CreateTransaction(Branch))).Should().BeNull();
+    }
 }

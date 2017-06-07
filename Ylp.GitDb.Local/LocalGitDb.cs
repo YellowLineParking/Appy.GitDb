@@ -340,5 +340,12 @@ namespace Ylp.GitDb.Local
 
         public void Dispose() =>
             _repo.Dispose();
+
+        public Task CloseTransactions(string branch)
+        {
+            _branchesWithTransaction.Remove(branch);
+            _logger.Info($"Aborted transaction on {branch}");
+            return Task.CompletedTask;
+        }
     }
 }

@@ -42,6 +42,12 @@ namespace Ylp.GitDb.Server
         public Task<IHttpActionResult> Delete(string branch, [FromBody] DeleteRequest request) =>
             result(() => _gitDb.Delete(branch, request.Key, request.Message, request.Author));
 
+        [Route("{branch}/transactions/close")]
+        [HttpPost]
+        [Authorize(Roles = "admin,write")]
+        public Task<IHttpActionResult> CloseTransactions(string branch) =>
+            result(() => _gitDb.CloseTransactions(branch));
+
         [Route("tag")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
