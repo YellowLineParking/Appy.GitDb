@@ -219,7 +219,7 @@ namespace Ylp.GitDb.Local
                 if (mergeRes.Status != MergeTreeStatus.Succeeded)
                 {
                     var logMessage = $"Could not merge {source} into {target} because of conflicts. Please merge manually";
-                    _logger.Trace(message);
+                    _logger.Trace(logMessage);
                     throw new NotSupportedException(logMessage);
                 }
 
