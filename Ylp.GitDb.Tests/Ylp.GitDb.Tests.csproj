@@ -121,9 +121,13 @@
     <Compile Include="Saving.cs" />
     <Compile Include="Utils\Utils.cs" />
     <Compile Include="Utils\TestClass.cs" />
+    <Compile Include="Utils\WithWatcher.cs" />
     <Compile Include="Utils\WithRepo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CreatingANewLocalGitDbClientInAnEmptyPath.cs" />
+    <Compile Include="Watcher\Branching.cs" />
+    <Compile Include="Watcher\InitializingARepo.cs" />
+    <Compile Include="Watcher\ModifyingBranches.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -146,7 +150,15 @@
       <Project>{A9FAB943-9F28-49F8-82FB-0380A22FD683}</Project>
       <Name>Ylp.GitDb.Server</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Ylp.GitDb.Watcher\Ylp.GitDb.Watcher.csproj">
+      <Project>{e3eba271-650e-4482-bdea-41f569051b4d}</Project>
+      <Name>Ylp.GitDb.Watcher</Name>
+    </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
