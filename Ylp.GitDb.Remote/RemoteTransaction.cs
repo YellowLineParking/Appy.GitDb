@@ -45,13 +45,13 @@ namespace Ylp.GitDb.Remote
             Add(Document.From(document));
 
         public Task Delete(string key) =>
-            executeIfOpen(() => _client.PostAsync($"/{_transactionId}/delete/{key}", new StringContent("", Encoding.UTF8)));
+            executeIfOpen(() => _client.PostAsync($"/{_transactionId}/delete/{key}", new StringContent("", Encoding.UTF8)).WhenSuccessful());
 
         public Task DeleteMany(IEnumerable<string> keys) =>
             executeIfOpen(async () =>
              {
                  foreach (var batch in keys.Batch(50))
-                     await _client.PostAsync($"/{_transactionId}/deleteMany", batch);
+                     await _client.PostAsync($"/{_transactionId}/deleteMany", batch).WhenSuccessful();
              });
             
 
@@ -62,7 +62,7 @@ namespace Ylp.GitDb.Remote
             executeIfOpen(async () =>
             {
                 foreach (var batch in documents.Batch(50))
-                    await _client.PostAsync($"/{_transactionId}/addMany", batch);
+                    await _client.PostAsync($"/{_transactionId}/addMany", batch).WhenSuccessful();
             });
 
         public async Task<string> Commit(string message, Author author)

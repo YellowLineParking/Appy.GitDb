@@ -21,7 +21,10 @@ namespace Ylp.GitDb.Server
             var userName = ConfigurationManager.AppSettings["remote.user.name"];
             var userEmail = ConfigurationManager.AppSettings["remote.user.email"];
             var password = ConfigurationManager.AppSettings["remote.user.password"];
-            var app = App.Create(url, new LocalGitDb(gitRepoPath, remoteUrl, userName, userEmail, password), new List<User>
+            if (!int.TryParse(ConfigurationManager.AppSettings["transactions.timeout"], out int transactionTimeout))
+                transactionTimeout = 10;
+
+            var app = App.Create(url, new LocalGitDb(gitRepoPath, remoteUrl, userName, userEmail, password, transactionTimeout), new List<User>
             {
                 new User{ UserName = "GitAdmin", Password = ConfigurationManager.AppSettings["GitAdmin"], Roles = new [] { "admin","read","write" }},
                 new User{ UserName = "GitReader",Password = ConfigurationManager.AppSettings["GitAdmin"],Roles = new [] { "read" }},
