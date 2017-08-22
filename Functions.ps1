@@ -33,9 +33,9 @@ function Get-ProjectsForTask($task){
 	}
 	
 	$config = @{
-		"clean" = "EmbeddedWebJob", "StandaloneWebJob", "App", "VsTest", "XUnit", "Package";
-		"compile" = "EmbeddedWebJob", "StandaloneWebJob", "App", "VsTest", "XUnit";
-		"test" = "VsTest", "XUnit";
+		"clean" = "EmbeddedWebJob", "StandaloneWebJob", "App", "VsTest", "XUnit", "VsTestAndXUnit", "Package";
+		"compile" = "EmbeddedWebJob", "StandaloneWebJob", "App", "VsTest", "XUnit", "VsTestAndXUnit", "Package";
+		"test" = "VsTest", "XUnit", "VsTestAndXUnit";
 		"pack" = "StandaloneWebJob", "Package", "App";
 		"push" = "StandaloneWebJob", "Package", "App";
 		"release" = "StandaloneWebJob", "App";
@@ -45,8 +45,9 @@ function Get-ProjectsForTask($task){
 
     return $projectConfig.Keys | 
         Where { 
-			$projectTypes -contains $projectConfig[$_]["Type"] -and `
-			($projectConfig[$_]["Exclude"] -eq $null -or $projectConfig[$_]["Exclude"].ToLower().IndexOf($task) -eq -1)
+			($projectTypes -contains $projectConfig[$_]["Type"] -and `
+			($projectConfig[$_]["Exclude"] -eq $null -or $projectConfig[$_]["Exclude"].ToLower().IndexOf($task) -eq -1) -or `
+			 ($projectConfig[$_]["Include"] -ne $null -and $projectConfig[$_]["Include"].ToLower().IndexOf($task) -ne -1))
 		} | 
         ForEach-Object { 
             @{
@@ -70,7 +71,7 @@ function Clean-Folder($folder){
 #region Compile
 
 function Compile-Project($projectName) {
-	use "14.0" MSBuild
+	use "15.0" MsBuild
 	$projectFile = "$projectName\$projectName.csproj"
 	$isWebProject = (((Select-String -pattern "<UseIISExpress>.+</UseIISExpress>" -path $projectFile) -ne $null) -and ((Select-String -pattern "<OutputType>WinExe</OutputType>" -path $projectFile) -eq $null))
 	$isWinProject = (((Select-String -pattern "<UseIISExpress>.+</UseIISExpress>" -path $projectFile) -eq $null) -and ((Select-String -pattern "<OutputType>WinExe</OutputType>" -path $projectFile) -ne $null))
@@ -82,7 +83,7 @@ function Compile-Project($projectName) {
 	}
 	elseif ($isWinProject -or $isExeProject) {
 		Write-Host "Compiling $projectName to $artifactsPath"
-		exec { MSBuild $projectFile /p:Configuration=$config /nologo /p:DebugType=None /p:Platform=AnyCpu /p:OutDir=..\$artifactsPath\$projectName /verbosity:quiet }
+		exec { MSBuild $projectFile /p:Configuration=$config /nologo /p:DebugType=None /p:Platform=AnyCpu /p:OutDir=..\$artifactsPath\$projectName /verbosity:quiet /p:Disable_CopyWebApplication=True }
 	}
 	else{
 		Write-Host "Compiling $projectName"
@@ -92,9 +93,22 @@ function Compile-Project($projectName) {
 
 function Move-WebJob($projectName, $target, $type){
 	Write-Host "Moving WebJob $projectName into $target as a $type job"
-	$targetPath = "$artifactsPath/$target/App_Data/Jobs/$type"
+	$sourcePath = "$artifactsPath/$projectName"
+
+	if($projectName -eq $target){
+		$tempPath = "$artifactsPath\temp"
+		New-Item $tempPath -ItemType Directory -Force
+		Move-Item -Path $sourcePath -Destination $tempPath | Out-Null
+		$sourcePath = "$artifactsPath\temp\*"
+	}
+
+	$targetPath = "$artifactsPath\$target\App_Data\Jobs\$type"
 	New-Item -Path $targetPath -ItemType Directory -Force
-	Copy-Item "$artifactsPath/$projectName" $targetPath -Force -Recurse
+	Copy-Item $sourcePath $targetPath -Force -Recurse | Out-Null
+
+	if($projectName -eq $target){
+		Remove-Item "$artifactsPath\temp" -Recurse -Force | Out-Null
+	}
 }
 
 #endregion
@@ -108,21 +122,48 @@ function Execute-Xunit($projectName){
 }
 
 function Execute-VsTest ($projectName){
-	$vstestrunner = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
-	if(!(Test-Path $vstestrunner)){
-		# Can't find vs test runner in default location, assume it's in the path
-		$vstestrunner = "vstest.console.exe"
-	}
+	$vstestrunner = Resolve-VsTestRunner
 	
 	$path = Resolve-Path "$projectName\bin\$config\$projectName.dll"
 
-	exec { & $vstestrunner $path /logger:trx  }
-
-	# Move the files from the project dir to the output dir because trx does not support defining the outputfile
-	Get-ChildItem "TestResults" -Filter *.trx | 
-		Foreach-Object {
-			Move-Item -Path $_.FullName -Destination $artifactsPath\$projectName.trx
+	try
+	{
+		if (Is-LocalBuild) {
+			$logger = "trx"
 		}
+		else {
+			$logger = "AppVeyor"
+		}
+		exec { & $vstestrunner $path /logger:$logger  }
+	}
+	finally
+	{
+		# Move the files from the project dir to the output dir because trx does not support defining the outputfile
+		if(Test-Path "TestResults")
+		{
+			Get-ChildItem "TestResults" -Filter *.trx | 
+				Foreach-Object {
+					Move-Item -Path $_.FullName -Destination $artifactsPath\$projectName.trx
+				}
+		}
+	}
+}
+
+function Resolve-VsTestRunner {
+	$vstestrunner = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
+	if(Test-Path $vstestrunner){
+		Write-Host "Using vstest.console.exe from VS 2017 Install"
+		return $vstestrunner
+	}
+
+	$vstestrunner = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
+	if(Test-Path $vstestrunner){
+		Write-Host "Using vstest.console.exe from VS 2015 Install"
+		return $vstestrunner
+	}
+
+	Write-Host "No VS install detected, Using vstest.console.exe from PATH"
+	return "vstest.console.exe"
 }
 
 #endregion
@@ -184,11 +225,12 @@ function Get-PrereleaseNumber($branch){
 function Pack-Project($projectName){
 	$version = Get-Version $projectName
 	Write-Host "Packing $projectName $version to $artifactsPath"
-	exec { & NuGet pack $projectName\$projectName.csproj -Build -Properties Configuration=$config -OutputDirectory $artifactsPath -Version $version -IncludeReferencedProjects -NonInteractive -MsBuildVersion "14" }
+	exec { & NuGet pack $projectName\$projectName.csproj -Build -Properties Configuration=$config -OutputDirectory $artifactsPath -Version $version -IncludeReferencedProjects -NonInteractive }
 }
 
 function Push-Package($package, $nugetPackageSource, $nugetPackageSourceApiKey, $ignoreNugetPushErrors) {
-	$package = @(Get-ChildItem $artifactsPath\$package*.nupkg)
+	$package = $package -replace "\.", "\."
+	$package = @(Get-ChildItem $artifactsPath\*.nupkg) | Where-Object {$_.Name -match "$package\.\d*\.\d*\.\d*.*\.nupkg"}
 	try {
 		if (![string]::IsNullOrEmpty($nugetPackageSourceApiKey) -and $nugetPackageSourceApiKey -ne "LoadFromNuGetConfig") {
 			$out = NuGet push $package -Source $nugetPackageSource -ApiKey $nugetPackageSourceApiKey 2>&1
@@ -237,19 +279,25 @@ function Get-ReleaseNotes(){
 	return "Build date: $(Get-Date -f 'yyyy-MM-dd HH:mm:ss')`rBuilt on: $computerName`rCommit Author: $author`rCommit author Email: $authorEmail`rBranch: $branch`rCommit: $shortCommit"
 }
 
-function Octo-CreateRelease($projectName){
+function Octo-CreateRelease($project){
 	$octopusToolsPath = Get-PackagePath OctopusTools $projectName
-	$version = Get-Version $projectName
+	$version = Get-Version $project
 	$releaseNotes = Get-ReleaseNotes
-	Write-Host "Creating release $version of $projectName on $env:ylp_octopusDeployServer"
-	exec { & $octopusToolsPath\tools\Octo.exe create-release --server="$env:ylp_octopusDeployServer" --apiKey="$env:ylp_octopusDeployApiKey" --project="$projectName" --version="$version" --releaseNotes=$releaseNotes --packageVersion="$version" --ignoreexisting }
+	Write-Host "Creating release $version of $project on $env:ylp_octopusDeployServer"
+	exec { & $octopusToolsPath\tools\Octo.exe create-release --server="$env:ylp_octopusDeployServer" --apiKey="$env:ylp_octopusDeployApiKey" --project="$project" --version="$version" --releaseNotes=$releaseNotes --packageVersion="$version" --ignoreexisting }
 }
 
-function Octo-DeployRelease($projectName){
+function Octo-DeployRelease($project){
 	$octopusToolsPath = Get-PackagePath OctopusTools $projectName
-	$version = Get-Version $projectName
-	Write-Host "Deploying release $version of $projectName on $env:ylp_octopusDeployServer to $env:ylp_environment"
-	exec { & $octopusToolsPath\tools\Octo.exe deploy-release --server="$env:ylp_octopusDeployServer" --apiKey="$env:ylp_octopusDeployApiKey" --project="$projectName" --version="$version" --deployto="$env:ylp_environment" }
+	$version = Get-Version $project
+
+	$environments = $env:ylp_environment.Split(",")
+
+	$environments | ForEach-Object{
+		$environment = $_	
+		Write-Host "Deploying release $version of $project on $env:ylp_octopusDeployServer to $environment"
+		exec { & $octopusToolsPath\tools\Octo.exe deploy-release --server="$env:ylp_octopusDeployServer" --apiKey="$env:ylp_octopusDeployApiKey" --project="$project" --version="$version" --deployto="$environment" }
+	}
 }
 
 #endregion

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using LibGit2Sharp;
@@ -194,5 +195,200 @@ namespace Ylp.GitDb.Tests
         [Fact]
         public async Task AllowsOpeningANewTransaction() =>
             (await Catch<Exception>(() => Subject.CreateTransaction(Branch))).Should().BeNull();
+    }
+
+    public class AddingAnItemToAnExpiredTransactionWhenNoItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                _exception = await Catch<Exception>(() => t.Add(new Document { Key = "456", Value = "value" }));
+            }
+        }
+
+        [Fact]
+        public void DoesNotThrowAnException() =>
+            _exception.Should().BeNull();
+    }
+
+    public class AddingAnItemToAnExpiredTransactionWhenItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                await Subject.Save("master", "message", new Document { Key = "key", Value = "value" }, Author);
+                _exception = await Catch<Exception>(() => t.Add(new Document { Key = "456", Value = "value" }));
+            }
+        }
+
+        [Fact]
+        public void ThrowsAnException() =>
+            _exception.Should().BeOfType<ArgumentException>();
+    }
+
+    public class AddingManyItemsToAnExpiredTransactionWhenNoItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                _exception = await Catch<Exception>(() => t.AddMany(new List<Document> { new Document { Key = "456", Value = "value" } }));
+            }
+        }
+
+        [Fact]
+        public void DoesNotThrowAnException() =>
+            _exception.Should().BeNull();
+    }
+
+    public class AddingManyItemsToAnExpiredTransactionWhenItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                await Subject.Save("master", "message", new Document { Key = "key", Value = "value" }, Author);
+                _exception = await Catch<Exception>(() => t.AddMany(new List<Document> { new Document { Key = "456", Value = "value" }}));
+            }
+        }
+
+        [Fact]
+        public void ThrowsAnException() =>
+            _exception.Should().BeOfType<ArgumentException>();
+    }
+
+    public class DeletingAnItemFromAnExpiredTransactionWhenNoItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                _exception = await Catch<Exception>(() => t.Delete("key"));
+            }
+        }
+
+        
+
+        [Fact]
+        public void DoesNotThrowAnException() =>
+            _exception.Should().BeNull();
+    }
+
+    public class DeletingAnItemFromAnExpiredTransactionWhenItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                await Subject.Save("master", "message", new Document { Key = "key", Value = "value" }, Author);
+                _exception = await Catch<Exception>(() => t.Delete("key"));
+            }
+        }
+
+        [Fact]
+        public void ThrowsAnException() =>
+            _exception.Should().BeOfType<ArgumentException>();
+    }
+
+    public class DeletingManyItemsFromAnExpiredTransactionWhenNoItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                _exception = await Catch<Exception>(() => t.DeleteMany(new List<string> { "key" }));
+            }
+        }
+
+        [Fact]
+        public void DoesNotThrowAnException() =>
+            _exception.Should().BeNull();
+    }
+
+    public class DeletingManyItemsFromAnExpiredTransactionWhenItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                await Subject.Save("master", "message", new Document { Key = "key", Value = "value" }, Author);
+                _exception = await Catch<Exception>(() => t.DeleteMany(new List<string>{"key"}));
+            }
+        }
+
+        [Fact]
+        public void ThrowsAnException() =>
+            _exception.Should().BeOfType<ArgumentException>();
+    }
+
+    public class CommittingAnExpiredTransactionWhenNoItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                _exception = await Catch<Exception>(() => t.Commit("message", Author));
+            }
+        }
+
+        [Fact]
+        public void DoesNotThrowAnException() =>
+            _exception.Should().BeNull();
+    }
+
+    public class CommittingAnExpiredTransactionWhenItemsHaveBeenSaved : WithRepo
+    {
+        Exception _exception;
+
+        protected override async Task Because()
+        {
+            using (var t = await Subject.CreateTransaction("master"))
+            {
+                await t.Add(new Document { Key = "123", Value = "value" });
+                Thread.Sleep(TransactionTimeout * 2 * 1000);
+                await Subject.Save("master", "message", new Document { Key = "key", Value = "value" }, Author);
+                _exception = await Catch<Exception>(() => t.Commit("message", Author));
+            }
+        }
+
+        [Fact]
+        public void ThrowsAnException() =>
+            _exception.Should().BeOfType<ArgumentException>();
     }
 }

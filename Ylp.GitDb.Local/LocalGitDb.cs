@@ -17,16 +17,18 @@ namespace Ylp.GitDb.Local
 {
     public class LocalGitDb : IGitDb
     {
+        readonly int _transactionTimeout;
         readonly Logger _logger;
         readonly string _remoteUrl;
         readonly string _userName;
         readonly Repository _repo;
-        readonly List<string> _branchesWithTransaction = new List<string>();
+        readonly Dictionary<string, DateTime> _branchesWithTransaction = new Dictionary<string, DateTime>();
         readonly Dictionary<string, object> _branchLocks;
         readonly PushOptions _pushOptions;
 
-        public LocalGitDb(string path, string remoteUrl = null, string userName = null, string userEmail = null, string password = null)
+        public LocalGitDb(string path, string remoteUrl = null, string userName = null, string userEmail = null, string password = null, int transactionTimeout = 10)
         {
+            _transactionTimeout = transactionTimeout;
             _logger = LogManager.GetCurrentClassLogger();
             
             _remoteUrl = string.IsNullOrEmpty(remoteUrl) ? null : remoteUrl;
@@ -77,6 +79,20 @@ namespace Ylp.GitDb.Local
             }
 
             _branchLocks = _repo.Branches.ToDictionary(branch => branch.FriendlyName, branch => new object());
+        }
+
+        bool isTransactionInProgress(string branch)
+        {
+            if (!_branchesWithTransaction.ContainsKey(branch))
+                return false;
+
+            if (_branchesWithTransaction[branch] < DateTime.Now)
+            {
+                _branchesWithTransaction.Remove(branch);
+                return false;
+            }
+
+            return true;
         }
 
         static Signature getSignature(Author author) =>
@@ -146,7 +162,7 @@ namespace Ylp.GitDb.Local
                 throw new ArgumentException("key cannot be empty");
             }
 
-            if (_branchesWithTransaction.Contains(branch))
+            if (isTransactionInProgress(branch))
             {
                 var exceptionMessage = $"There is a transaction in progress for branch {branch}. Complete the transaction first.";
                 _logger.Warn(exceptionMessage);
@@ -206,7 +222,7 @@ namespace Ylp.GitDb.Local
             var targetBranch = _repo.Branches[target];
             var sourceBranch = _repo.Branches[source];
 
-            if (_branchesWithTransaction.Contains(target))
+            if (isTransactionInProgress(target))
             {
                 var exceptionMessage = $"There is a transaction in progress for branch {target}. Complete the transaction first.";
                 _logger.Warn(exceptionMessage);
@@ -264,25 +280,38 @@ namespace Ylp.GitDb.Local
 
         public Task<ITransaction> CreateTransaction(string branch)
         {
-            if (_branchesWithTransaction.Contains(branch))
+            if (isTransactionInProgress(branch))
             {
                 var exceptionMessage = $"There is a transaction in progress for branch {branch}. Complete the transaction first.";
                 _logger.Warn(exceptionMessage);
                 throw new ArgumentException(exceptionMessage);
             }
 
-            _branchesWithTransaction.Add(branch);
+            _branchesWithTransaction.Add(branch, DateTime.Now.AddSeconds(_transactionTimeout));
             var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
+
+            void EnsureTransactionInProgress()
+            {
+                if (!_branchesWithTransaction.ContainsKey(branch))
+                {
+                    var exceptionMessage = $"Transaction does not exist for branch {branch} or has timed out";
+                    _logger.Warn(exceptionMessage);
+                    throw new ArgumentException(exceptionMessage);
+                }
+                _branchesWithTransaction[branch] = DateTime.Now.AddSeconds(_transactionTimeout);
+            }
 
             return Task.FromResult((ITransaction)new Transaction(
                 add: document =>
                 {
+                    EnsureTransactionInProgress();
                     addBlobToTree(document.Key, addBlob(document.Value), tree);
                     _logger.Trace($"Added blob with key {document.Key} to transaction on {branch}");
                     return Task.CompletedTask;
                 },
                 commit: (message, author) =>
                 {
+                    EnsureTransactionInProgress();
                     lock (getLock(branch))
                     {
                         var sha = commitTree(branch, tree, getSignature(author), message);
@@ -300,6 +329,7 @@ namespace Ylp.GitDb.Local
                 },
                 delete: key =>
                 {
+                    EnsureTransactionInProgress();
                     deleteKeyFromTree(key, tree);
                     _logger.Trace($"Removed blob with key {key} in transaction  on {branch}");
                     return Task.CompletedTask;

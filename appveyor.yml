@@ -3,3 +3,5 @@ skip_tags: true
 build_script:
 - cmd: build ci
 test: off
+image: 
+- Visual Studio 2017

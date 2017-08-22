@@ -25,6 +25,7 @@ namespace Ylp.GitDb.Tests.Utils
         protected readonly string LocalPath = Path.GetTempPath() + Guid.NewGuid();
         protected Repository Repo;
         protected readonly Author Author = new Author("author", "author@mail.com");
+        protected readonly int TransactionTimeout = 1;
         TestServer _server;
         HttpClient _client;
 
@@ -55,7 +56,7 @@ namespace Ylp.GitDb.Tests.Utils
         public async Task InitializeAsync()
         {
             const string url = "http://localhost"; // this is a dummy url, requests are in-memory, not over the network
-            var app = App.Create(url, new LocalGitDb(LocalPath), _users);
+            var app = App.Create(url, new LocalGitDb(LocalPath, transactionTimeout: TransactionTimeout), _users);
             _server = TestServer.Create(app.Configuration);
             _client = _server.HttpClient;
             WithUser(Admin);     
