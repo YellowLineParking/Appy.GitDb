@@ -112,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\Authentication.cs" />
+    <Compile Include="GitProtocol.cs" />
     <Compile Include="Logging\CorrelationIdRenderer.cs" />
     <Compile Include="Logging\ExceptionLogger.cs" />
     <Compile Include="GitApi.cs" />
