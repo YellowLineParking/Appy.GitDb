@@ -141,6 +141,12 @@ namespace Ylp.GitDb.Server
         public Task<IHttpActionResult> Merge(MergeRequest mergeRequest) =>
            result(() =>_gitDb.MergeBranch(mergeRequest.Source, mergeRequest.Target, mergeRequest.Author, mergeRequest.Message));
 
+        [Route("diff/{reference}/{reference2}")]
+        [HttpGet]
+        [Authorize(Roles = "admin,read")]
+        public Task<IHttpActionResult> Diff(string reference, string reference2) =>
+            result(() => _gitDb.Diff(reference, reference2));
+
 
         async Task<IHttpActionResult> result<T>(Func<Task<T>> action)
         {

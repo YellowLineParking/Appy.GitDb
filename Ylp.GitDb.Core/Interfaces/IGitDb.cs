@@ -26,5 +26,7 @@ namespace Ylp.GitDb.Core.Interfaces
 
         Task<string> MergeBranch(string source, string target, Author author, string message);
         Task DeleteBranch(string branch);
+
+        Task<Diff> Diff(string reference, string reference2);
     }
 }

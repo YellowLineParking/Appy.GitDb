@@ -114,6 +114,7 @@
   <ItemGroup>
     <Compile Include="Authentication.cs" />
     <Compile Include="DeletingABranch.cs" />
+    <Compile Include="Diff.cs" />
     <Compile Include="GettingAList.cs" />
     <Compile Include="GettingAValue.cs" />
     <Compile Include="DeletingAValue.cs" />

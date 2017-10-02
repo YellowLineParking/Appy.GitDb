@@ -16,10 +16,8 @@ namespace Ylp.GitDb.Remote
     {
         readonly HttpClient _client;
 
-        public RemoteGitDb(HttpClient client)
-        {
+        public RemoteGitDb(HttpClient client) => 
             _client = client;
-        }
 
         public RemoteGitDb(string userName, string password, string url)
         {
@@ -96,6 +94,11 @@ namespace Ylp.GitDb.Remote
         public Task DeleteBranch(string branch) =>
             _client.DeleteAsync(branch)
                    .WhenSuccessful();
+
+        public async Task<Diff> Diff(string reference, string reference2) =>
+            JsonConvert.DeserializeObject<Diff>(await _client.GetAsync($"/diff/{reference}/{reference2}")
+                       .WhenSuccessful()
+                       .AsStringResponse());
 
         public Task CloseTransactions(string branch) =>
              _client.PostAsync($"/{branch}/transactions/close", null)
