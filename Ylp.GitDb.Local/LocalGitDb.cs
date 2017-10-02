@@ -275,6 +275,45 @@ namespace Ylp.GitDb.Local
             return Task.CompletedTask;
         }
 
+        public Task<Core.Model.Diff> Diff(string reference, string reference2)
+        {
+            var tree1 = getTreeFromReference(reference);
+            var tree2 = getTreeFromReference(reference2);
+
+            if (tree1 == null || tree2 == null)
+            {
+                var invalidRefs = (tree1 == null ? reference : string.Empty) + " " + (tree2 == null ? reference2 : string.Empty);
+                  var message = $"Could not perform diff between {reference} and {reference2}: invalid reference(s): {invalidRefs}";
+                _logger.Warn(message);
+                throw new ArgumentException(message);
+            }
+
+            var diff = _repo.Diff.Compare<TreeChanges>(tree1, tree2);
+
+            return Task.FromResult(new Core.Model.Diff
+            {
+                Added = diff.Added.Select(a => new ItemAdded
+                {
+                    Key = a.Path,
+                }).ToList(),
+                Modified = diff.Modified.Select(m => new ItemModified
+                {
+                    Key = m.Path,
+                }).ToList(),
+                Renamed = diff.Renamed.Select(r => new ItemRenamed
+                {
+                    Key = r.Path,
+                    OldKey = r.OldPath
+                }).ToList(),
+                Deleted = diff.Deleted.Select(d => new ItemDeleted { Key = d.Path }).ToList()
+            });
+        }
+
+        Tree getTreeFromReference(string reference) => 
+            (_repo.Lookup<Commit>(reference)?.Tree ?? 
+            _repo.Branches[reference]?.Tip?.Tree) ?? 
+            ((Commit) _repo.Tags[reference]?.PeeledTarget)?.Tree;
+
         public Task<IEnumerable<string>> GetAllBranches() =>
             Task.FromResult(_repo.Branches.Where(b => !b.IsRemote).Select(b => b.FriendlyName));
 
