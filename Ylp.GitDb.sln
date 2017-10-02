@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ylp.GitDb.Server", "Ylp.GitDb.Server\Ylp.GitDb.Server.csproj", "{A9FAB943-9F28-49F8-82FB-0380A22FD683}"
 EndProject
@@ -15,7 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{46D2F58C
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		build.bat = build.bat
-		build.ps1 = build.ps1
 		config.yml = config.yml
 		Functions.ps1 = Functions.ps1
 		tasks.ps1 = tasks.ps1
