@@ -73,7 +73,7 @@ namespace Ylp.GitDb.Watcher
             {
                 var previousCommit = _repo.Lookup<Commit>(previousBranches[branch.Name].Commit);
                 var currentCommit = _repo.Lookup<Commit>(branch.Commit);
-                _logger.Trace($"Found differences on branch {branch}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
+                _logger.Trace($"Found differences on branch {branch.Name}, starting diff between {previousCommit.Sha} and {currentCommit.Sha}");
                 var result = _repo.Diff.Compare<TreeChanges>(previousCommit.Tree, currentCommit.Tree);
                 _logger.Info($"Finished diff on branch {branch.Name}, found {result.Added.Count()} added items, {result.Deleted.Count()} deleted items, {result.Renamed.Count()} renamed items and {result.Modified.Count()} modified items");
 
