@@ -16,10 +16,9 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesABranchAddedEvent() =>
-            Subject.ShouldRaise("BranchAdded")
-                   .WithArgs<BranchAdded>(args => args.BaseBranch == "master" &&
-                                                  args.Branch.Name == "test" && 
-                                                  args.Branch.Commit == Repo.Branches["master"].Tip.Sha);
+           BranchAdded.Should().Contain(args => args.BaseBranch == "master" &&
+                                                args.Branch.Name == "test" && 
+                                                args.Branch.Commit == Repo.Branches["master"].Tip.Sha);
     }
 
     public class AddingABranchAtACommitFromADifferentBranch : WithWatcher
@@ -36,11 +35,10 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesABranchAddedEvent() =>
-            Subject.ShouldRaise("BranchAdded")
-                   .WithArgs<BranchAdded>(args => args.BaseBranch == "master" &&
-                                                  args.Branch.Name == "test" &&
-                                                  args.Branch.Commit == _pointer &&
-                                                  args.Deleted.Any());
+            BranchAdded.Should().Contain(args => args.BaseBranch == "master" &&
+                                                 args.Branch.Name == "test" &&
+                                                 args.Branch.Commit == _pointer &&
+                                                 args.Deleted.Any());
     }
 
     public class RemovingABranch : WithWatcher
@@ -53,7 +51,6 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesABranchAddedEvent() =>
-            Subject.ShouldRaise("BranchRemoved")
-                   .WithArgs<BranchRemoved>(args => args.Branch.Name == "master");
+            BranchRemoved.Should().Contain(args => args.Branch.Name == "master");
     }
 }

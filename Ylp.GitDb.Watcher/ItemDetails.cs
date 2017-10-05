@@ -1,16 +1,18 @@
+using System;
+
 namespace Ylp.GitDb.Watcher
 {
     public class ItemAdded
     {
         public string Key { get; set; }
-        public string Value { get; set; }
+        public Func<string> GetValue { get; set; }
     }
     public class ItemDeleted : ItemAdded
     {
     }
     public class ItemModified : ItemAdded
     {
-        public string OldValue { get; set; }
+        public Func<string> GetOldValue { get; set; }
     }
     public class ItemRenamed : ItemModified
     {

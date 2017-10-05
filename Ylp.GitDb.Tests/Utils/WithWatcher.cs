@@ -36,6 +36,10 @@ namespace Ylp.GitDb.Tests.Utils
             Directory.Delete(directory);
         }
 
+        protected List<BranchAdded> BranchAdded = new List<BranchAdded>();
+        protected List<BranchRemoved> BranchRemoved = new List<BranchRemoved>();
+        protected List<BranchChanged> BranchChanged = new List<BranchChanged>();
+
         public async Task InitializeAsync()
         {
             GitDb = new LocalGitDb(_localPath);
@@ -43,9 +47,9 @@ namespace Ylp.GitDb.Tests.Utils
             await Task.WhenAll(Enumerable.Range(0, 20)
                                          .Select(i => GitDb.Save("master", $"Commit {i}", new Document{Key = $"{i}.json", Value = i.ToString()},Author )));
             await Setup();
-            Subject = new GitDb.Watcher.Watcher(_localPath, 1);
-            Subject.MonitorEvents();
-            Subject.Start(new List<BranchInfo>());
+            Subject = new GitDb.Watcher.Watcher(_localPath, 1, addToList(BranchAdded), addToList(BranchChanged), addToList(BranchRemoved));
+            
+            await Subject.Start(new List<BranchInfo>());
             await Because();
             Thread.Sleep(500);
         }
@@ -58,5 +62,12 @@ namespace Ylp.GitDb.Tests.Utils
             deleteReadOnlyDirectory(_localPath);
             return Task.CompletedTask;
         }
+
+        Func<T, Task> addToList<T>(List<T> list) => 
+            ev =>
+            {   
+                list.Add(ev);
+                return Task.CompletedTask;
+            };
     }
 }
