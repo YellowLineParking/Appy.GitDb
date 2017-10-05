@@ -15,9 +15,8 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesBranchChangedEvent() =>
-            Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
-                                                    args.Added.Any(item => item.Key == "key" && item.Value == "value"));
+            BranchChanged.Should().Contain(args => args.Branch.Name == "master" &&
+                                                   args.Added.Any(item => item.Key == "key" && item.GetValue() == "value"));
     }
 
     public class RemovingAFile : WithWatcher
@@ -30,9 +29,8 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesBranchChangedEvent() =>
-            Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
-                                                    args.Deleted.Any(item => item.Key == "key"));
+            BranchChanged.Should().Contain(args => args.Branch.Name == "master" &&
+                                                   args.Deleted.Any(item => item.Key == "key"));
     }
 
     public class ModifyingAFile : WithWatcher
@@ -45,11 +43,10 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesBranchChangedEvent() =>
-            Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
+            BranchChanged.Should().Contain(args => args.Branch.Name == "master" &&
                                                     args.Modified.Any(item => item.Key == "key" &&
-                                                                              item.Value == "value2" &&
-                                                                              item.OldValue == "value"));   
+                                                                              item.GetValue() == "value2" &&
+                                                                              item.GetOldValue() == "value"));   
     }
 
     public class RenamingAFile : WithWatcher
@@ -69,11 +66,10 @@ namespace Ylp.GitDb.Tests.Watcher
 
         [Fact]
         public void RaisesBranchChangedEvent() =>
-            Subject.ShouldRaise("BranchChanged")
-                   .WithArgs<BranchChanged>(args => args.Branch.Name == "master" &&
+            BranchChanged.Should().Contain(args => args.Branch.Name == "master" &&
                                                     args.Renamed.Any(item => item.Key == "subdir\\key" &&
                                                                              item.OldKey == "key" && 
-                                                                             item.Value == "value" &&
-                                                                             item.OldValue == "value"));
+                                                                             item.GetValue() == "value" &&
+                                                                             item.GetOldValue() == "value"));
     }
 }
