@@ -205,7 +205,13 @@ namespace Ylp.GitDb.Local
             _logger.Trace($"Created tag {reference.Name} at commit {reference.Pointer}");
             return Task.FromResult(result);
         }
-            
+
+        public Task DeleteTag(string tag)
+        {
+            _repo.Tags.Remove(tag);
+            return Task.CompletedTask;
+        }
+
         public Task CreateBranch(Reference reference)
         {
             _repo.Branches.Add(reference.Name, reference.Pointer);

@@ -19,6 +19,7 @@ namespace Ylp.GitDb.Core.Interfaces
         Task<string> Delete(string branch, string key, string message, Author author);
 
         Task Tag(Reference reference);
+        Task DeleteTag(string tag);
         Task CreateBranch(Reference reference);
         Task<IEnumerable<string>> GetAllBranches();
         Task<ITransaction> CreateTransaction(string branch);

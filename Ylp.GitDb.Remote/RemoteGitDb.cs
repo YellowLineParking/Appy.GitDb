@@ -73,6 +73,10 @@ namespace Ylp.GitDb.Remote
             _client.PostAsync("/tag", reference)
                    .WhenSuccessful();
 
+        public Task DeleteTag(string tag) =>
+            _client.DeleteAsync($"tag/{tag}")
+                   .WhenSuccessful();
+
         public Task CreateBranch(Reference reference) =>
             _client.PostAsync("/branch", reference)
                    .WhenSuccessful();
