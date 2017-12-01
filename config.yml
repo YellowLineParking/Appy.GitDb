@@ -25,16 +25,16 @@
 #					Target: <project name to embed into>
 #					RunMode: <continuous | triggered>
 
-Ylp.GitDb.Benchmark:
+Appy.GitDb.Benchmark:
 	Type: App
 	Exclude: "pack, push, release, deploy"
-Ylp.GitDb.Local:
+Appy.GitDb.Local:
 	Type: Package
-Ylp.GitDb.Remote:
+Appy.GitDb.Remote:
 	Type: Package
-Ylp.GitDb.Server:
+Appy.GitDb.Server:
 	Type: App
-Ylp.GitDb.Tests:
+Appy.GitDb.Tests:
 	Type: Xunit
-Ylp.GitDb.Watcher:
+Appy.GitDb.Watcher:
 	Type: Package
