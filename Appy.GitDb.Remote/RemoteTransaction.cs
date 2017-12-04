@@ -12,25 +12,27 @@ namespace Appy.GitDb.Remote
     class RemoteTransaction : ITransaction
     {
         readonly HttpClient _client;
+        readonly string _name;
         readonly string _transactionId;
         readonly int _batchSize;
         bool _isOpen;
-        RemoteTransaction(HttpClient client, string transactionId, int batchSize)
+        RemoteTransaction(HttpClient client, string name, string transactionId, int batchSize)
         {
             _client = client;
+            _name = name;
             _transactionId = transactionId;
             _batchSize = batchSize;
             _isOpen = true;
         }
 
-        public static async Task<RemoteTransaction> Create(HttpClient client, string branch, int batchSize)
+        public static async Task<RemoteTransaction> Create(HttpClient client, string repo, string branch, int batchSize)
         {
-            var transactionId = (await (await client.PostAsync($"/{branch}/transaction", new StringContent("", Encoding.UTF8))
+            var transactionId = (await (await client.PostAsync($"/data/{repo}/{branch}/transaction", new StringContent("", Encoding.UTF8))
                                                     .WhenSuccessful())
                                                     .Content
                                                     .ReadAsStringAsync())
                                                     .Replace("\"", "");
-            return new RemoteTransaction(client, transactionId, batchSize);
+            return new RemoteTransaction(client, repo, transactionId, batchSize);
         }
 
         T executeIfOpen<T>(Func<T> action)
@@ -41,19 +43,19 @@ namespace Appy.GitDb.Remote
         }
 
         public Task Add(Document document) =>
-            executeIfOpen(() => _client.PostAsync($"/{_transactionId}/add", document).WhenSuccessful());
+            executeIfOpen(() => _client.PostAsync($"/data/{_name}/{_transactionId}/add", document).WhenSuccessful());
 
         public Task Add<T>(Document<T> document) => 
             Add(Document.From(document));
 
         public Task Delete(string key) =>
-            executeIfOpen(() => _client.PostAsync($"/{_transactionId}/delete/{key}", new StringContent("", Encoding.UTF8)).WhenSuccessful());
+            executeIfOpen(() => _client.PostAsync($"/data/{_name}/{_transactionId}/delete/{key}", new StringContent("", Encoding.UTF8)).WhenSuccessful());
 
         public Task DeleteMany(IEnumerable<string> keys) =>
             executeIfOpen(async () =>
              {
                  foreach (var batch in keys.Batch(_batchSize))
-                     await _client.PostAsync($"/{_transactionId}/deleteMany", batch).WhenSuccessful();
+                     await _client.PostAsync($"/data/{_name}/{_transactionId}/deleteMany", batch).WhenSuccessful();
              });
             
 
@@ -64,7 +66,7 @@ namespace Appy.GitDb.Remote
             executeIfOpen(async () =>
             {
                 foreach (var batch in documents.Batch(_batchSize))
-                    await _client.PostAsync($"/{_transactionId}/addMany", batch).WhenSuccessful();
+                    await _client.PostAsync($"/data/{_name}/{_transactionId}/addMany", batch).WhenSuccessful();
             });
 
         public async Task<string> Commit(string message, Author author)
@@ -73,7 +75,7 @@ namespace Appy.GitDb.Remote
                 throw new Exception("Transaction is not open");
 
             _isOpen = false;
-            return await _client.PostAsync($"/{_transactionId}/commit", new CommitTransaction
+            return await _client.PostAsync($"/data/{_name}/{_transactionId}/commit", new CommitTransaction
             {
                 Message = message,
                 Author = author
@@ -84,7 +86,7 @@ namespace Appy.GitDb.Remote
         public async Task Abort()
         {
             if (_isOpen)
-                await _client.PostAsync($"/{_transactionId}/abort", new StringContent("", Encoding.UTF8));
+                await _client.PostAsync($"/data/{_name}/{_transactionId}/abort", new StringContent("", Encoding.UTF8));
             _isOpen = false;
         }
 

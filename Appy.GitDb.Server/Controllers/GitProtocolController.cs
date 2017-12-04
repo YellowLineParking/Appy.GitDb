@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 
-namespace Appy.GitDb.Server
+namespace Appy.GitDb.Server.Controllers
 {
     [RoutePrefix("server")]
     public class GitProtocolController : ApiController
@@ -17,56 +17,57 @@ namespace Appy.GitDb.Server
         const string FlushMessage = "0000";
         readonly string _gitPath = ConfigurationManager.AppSettings["git.path"];
         readonly string _gitHomePath = ConfigurationManager.AppSettings["git.homePath"];
-        readonly string _repoPath = ConfigurationManager.AppSettings["git.repository.path"];
+        readonly string _repoBasePath = ConfigurationManager.AppSettings["git.repository.basePath"];
 
         [HttpGet]
-        [Route("repository.git")]
+        [Route("{repository}.git")]
         [Authorize(Roles = "admin, read")]
-        public IHttpActionResult GitUrl() =>
+        public IHttpActionResult GitUrl(string repository) =>
             Ok();
 
         [HttpGet]
-        [Route("repository.git/info/refs")]
+        [Route("{repository}.git/info/refs")]
         [Authorize(Roles = "admin, read")]
-        public IHttpActionResult InfoRefs(string service) => 
+        public IHttpActionResult InfoRefs(string repository, string service) => 
             new GitResult(
                 Request,
                 $"application/x-{service}-advertisement",
-                (input, outStream) => executeServiceByName(input, outStream, service.Substring(4), true, false),
+                (input, outStream) => executeServiceByName(repository, input, outStream, service.Substring(4), true, false),
                 formatMessage($"# service={service}\n") + FlushMessage);
 
-        [HttpPost, Route("repository.git/git-upload-pack")]
+        [HttpPost, Route("{repository}.git/git-upload-pack")]
         [Authorize(Roles = "admin, read")]
-        public IHttpActionResult UploadPack() => 
+        public IHttpActionResult UploadPack(string repository) => 
             new GitResult(Request,
                             "application/x-git-upload-pack-result",
-                            (input, outStream) => executeServiceByName(input, outStream, "upload-pack", false, true));
+                            (input, outStream) => executeServiceByName(repository, input, outStream, "upload-pack", false, true));
 
-        [HttpPost, Route("repository.git/git-receive-pack")]
+        [HttpPost, Route("{repository}.git/git-receive-pack")]
         [Authorize(Roles = "admin, write")]
-        public IHttpActionResult ReceivePack() => 
+        public IHttpActionResult ReceivePack(string repository) => 
             new GitResult(Request,
                             "application/x-git-receive-pack-result",
-                            (input, outStream) => executeServiceByName(input, outStream, "receive-pack", false, false));
+                            (input, outStream) => executeServiceByName(repository, input, outStream, "receive-pack", false, false));
 
         static string formatMessage(string input) => 
             (input.Length + 4).ToString("X").PadLeft(4, '0') + input;
 
-        async Task executeServiceByName(Stream input, Stream output, string serviceName, bool addAdvertiseRefs, bool closeInput)
+        async Task executeServiceByName(string repository, Stream input, Stream output, string serviceName, bool addAdvertiseRefs, bool closeInput)
         {
+            var repoPath = _repoBasePath + "\\" + repository;
             var args = serviceName + " --stateless-rpc";
             if (addAdvertiseRefs)
                 args += " --advertise-refs";
-            args += " \"" + _repoPath + "\"";
+            args += " \"" + repoPath + "\"";
 
-            var info = new ProcessStartInfo(_gitPath + @"\git.exe", args)
+            var info = new ProcessStartInfo(_gitPath, args)
             {
                 CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                WorkingDirectory = Path.GetDirectoryName(_repoPath),
+                WorkingDirectory = Path.GetDirectoryName(repoPath),
             };
 
             if (info.EnvironmentVariables.ContainsKey("HOME"))

@@ -16,15 +16,13 @@ namespace Appy.GitDb.Server
             LayoutRenderer.Register<ExceptionLayoutRenderer>("appy-exception");
             LayoutRenderer.Register<CorrelationIdLayoutRenderer>("correlationid");
             var url = ConfigurationManager.AppSettings["server.url"];
-            var gitRepoPath = ConfigurationManager.AppSettings["git.repository.path"];
+            var gitRepoPath = ConfigurationManager.AppSettings["git.repository.basePath"];
             var remoteUrl = ConfigurationManager.AppSettings["remote.url"];
             var userName = ConfigurationManager.AppSettings["remote.user.name"];
             var userEmail = ConfigurationManager.AppSettings["remote.user.email"];
             var password = ConfigurationManager.AppSettings["remote.user.password"];
-            if (!int.TryParse(ConfigurationManager.AppSettings["transactions.timeout"], out int transactionTimeout))
-                transactionTimeout = 10;
-
-            var app = App.Create(url, new LocalGitDb(gitRepoPath, remoteUrl, userName, userEmail, password, transactionTimeout), new List<User>
+            
+            var app = App.Create(url, new LocalGitServer(gitRepoPath, remoteUrl, userName, userEmail, password), new List<User>
             {
                 new User{ UserName = "GitAdmin", Password = ConfigurationManager.AppSettings["GitAdmin"], Roles = new [] { "admin","read","write" }},
                 new User{ UserName = "GitReader",Password = ConfigurationManager.AppSettings["GitAdmin"],Roles = new [] { "read" }},

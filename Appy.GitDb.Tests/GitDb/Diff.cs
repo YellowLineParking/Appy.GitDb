@@ -6,7 +6,7 @@ using Appy.GitDb.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
-namespace Appy.GitDb.Tests
+namespace Appy.GitDb.Tests.GitDb
 {
     public class DiffWhenThereAreChanges : WithRepo
     {

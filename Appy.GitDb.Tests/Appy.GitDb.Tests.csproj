@@ -112,25 +112,26 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Authentication.cs" />
-    <Compile Include="DeletingABranch.cs" />
+    <Compile Include="Api\Authentication.cs" />
+    <Compile Include="GitDb\DeletingABranch.cs" />
     <Compile Include="Log.cs" />
-    <Compile Include="Diff.cs" />
-    <Compile Include="GettingAList.cs" />
-    <Compile Include="GettingAValue.cs" />
-    <Compile Include="DeletingAValue.cs" />
-    <Compile Include="Branching.cs" />
-    <Compile Include="Merging.cs" />
-    <Compile Include="Tagging.cs" />
-    <Compile Include="Transactions.cs" />
+    <Compile Include="GitDb\Diff.cs" />
+    <Compile Include="GitDb\GettingAList.cs" />
+    <Compile Include="GitDb\GettingAValue.cs" />
+    <Compile Include="GitDb\DeletingAValue.cs" />
+    <Compile Include="GitDb\Branching.cs" />
+    <Compile Include="GitDb\Merging.cs" />
+    <Compile Include="GitDb\Tagging.cs" />
+    <Compile Include="GitDb\Transactions.cs" />
     <Compile Include="Utils\Behaviors.cs" />
-    <Compile Include="Saving.cs" />
+    <Compile Include="GitDb\Saving.cs" />
     <Compile Include="Utils\Utils.cs" />
     <Compile Include="Utils\TestClass.cs" />
+    <Compile Include="Utils\WithServer.cs" />
     <Compile Include="Utils\WithWatcher.cs" />
     <Compile Include="Utils\WithRepo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CreatingANewLocalGitDbClientInAnEmptyPath.cs" />
+    <Compile Include="GitDb\CreatingANewLocalGitDbClientInAnEmptyPath.cs" />
     <Compile Include="Watcher\Branching.cs" />
     <Compile Include="Watcher\ModifyingBranches.cs" />
   </ItemGroup>
@@ -166,7 +167,9 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="GitServer\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -112,10 +112,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth\Authentication.cs" />
-    <Compile Include="GitProtocol.cs" />
+    <Compile Include="Controllers\ServerController.cs" />
+    <Compile Include="Controllers\GitProtocolController.cs" />
     <Compile Include="Logging\CorrelationIdRenderer.cs" />
     <Compile Include="Logging\ExceptionLogger.cs" />
-    <Compile Include="GitApi.cs" />
+    <Compile Include="Controllers\GitApi.cs" />
     <Compile Include="Logging\LogContext.cs" />
     <Compile Include="Logging\LoggingMiddleWare.cs" />
     <Compile Include="Logging\ExceptionLayoutRenderer.cs" />

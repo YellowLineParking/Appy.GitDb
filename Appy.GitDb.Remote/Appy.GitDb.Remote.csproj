@@ -43,6 +43,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteGitDb.cs" />
+    <Compile Include="RemoteGitServer.cs" />
     <Compile Include="RemoteTransaction.cs" />
   </ItemGroup>
   <ItemGroup>

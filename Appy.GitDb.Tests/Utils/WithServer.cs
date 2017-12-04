@@ -18,9 +18,9 @@ using Xunit;
 
 namespace Appy.GitDb.Tests.Utils
 {
-    public abstract class WithRepo : IAsyncLifetime
+    public abstract class WithServer : IAsyncLifetime
     {
-        protected IGitDb Subject;
+        protected IGitServer Subject;
         protected readonly string LocalPath = Path.GetTempPath() + Guid.NewGuid();
         protected Repository Repo;
         protected readonly Author Author = new Author("author", "author@mail.com");
@@ -56,36 +56,20 @@ namespace Appy.GitDb.Tests.Utils
         {
             const string url = "http://localhost"; // this is a dummy url, requests are in-memory, not over the network
             var server = new LocalGitServer(LocalPath, transactionTimeout: TransactionTimeout);
-            await server.CreateDatabase("repo");
             var app = App.Create(url, server, _users);
             _server = TestServer.Create(app.Configuration);
             _client = _server.HttpClient;
             WithUser(Admin);   
-            Subject = new RemoteGitDb(_client, "repo");
-            Repo = new Repository(LocalPath + "\\repo");
+            Subject = new RemoteGitServer(_client);
             await Because();
         }
 
         public Task DisposeAsync()
         {
             _server.Dispose();
-            Subject.Dispose();
             Repo.Dispose();
             deleteReadOnlyDirectory(LocalPath);
             return Task.CompletedTask;
-        }
-
-        // Use this method to inspect the resulting repository
-        protected void MoveToNormalRepo(string baseDir)
-        {
-            if (Directory.Exists(baseDir))
-                deleteReadOnlyDirectory(baseDir);
-
-            Repository.Clone(LocalPath, baseDir, new CloneOptions
-            {
-                BranchName = "master",
-                IsBare = false
-            });
         }
     }
 }

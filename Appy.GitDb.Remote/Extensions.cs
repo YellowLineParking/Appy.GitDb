@@ -35,13 +35,15 @@ namespace Appy.GitDb.Remote
         public static async Task<HttpResponseMessage> WhenSuccessful(this Task<HttpResponseMessage> task)
         {
             var response = await task;
+            if ((int)response.StatusCode < 300)
+                return response;
             if (response.StatusCode == HttpStatusCode.BadRequest)
                 throw new ArgumentException($"The request was not valid: {response.StatusCode}:{response.ReasonPhrase}:{await response.Content.ReadAsStringAsync()}");
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 throw new UnauthorizedAccessException($"The request was not authorized:{response.StatusCode}:{response.ReasonPhrase}:{await response.Content.ReadAsStringAsync()}");
-            if(response.StatusCode == HttpStatusCode.InternalServerError)
-                throw new Exception($"An unexpected error occurred:{response.StatusCode}:{await response.Content.ReadAsStringAsync()}");
-            return response;
+            
+
+            throw new Exception($"An unexpected error occurred:{response.StatusCode}:{await response.Content.ReadAsStringAsync()}");
         }
         
     }

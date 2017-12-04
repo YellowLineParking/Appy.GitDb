@@ -15,7 +15,7 @@ namespace Appy.GitDb.Tests.Utils
 {
     public abstract class WithWatcher : IAsyncLifetime
     {
-        protected GitDb.Watcher.Watcher Subject;
+        protected Appy.GitDb.Watcher.Watcher Subject;
         readonly string _localPath = Path.GetTempPath() + Guid.NewGuid();
         protected IGitDb GitDb;
         protected Repository Repo;
@@ -46,7 +46,7 @@ namespace Appy.GitDb.Tests.Utils
             await Task.WhenAll(Enumerable.Range(0, 20)
                                          .Select(i => GitDb.Save("master", $"Commit {i}", new Document{Key = $"{i}.json", Value = i.ToString()},Author )));
             await Setup();
-            Subject = new GitDb.Watcher.Watcher(_localPath, 1, addToList(BranchAdded), addToList(BranchChanged), addToList(BranchRemoved));
+            Subject = new Appy.GitDb.Watcher.Watcher(_localPath, 1, addToList(BranchAdded), addToList(BranchChanged), addToList(BranchRemoved));
             
             await Subject.Start(new List<BranchInfo>());
             await Because();

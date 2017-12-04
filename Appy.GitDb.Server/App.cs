@@ -23,10 +23,10 @@ namespace Appy.GitDb.Server
         IEnumerable<User> _users;
         Logger _serverLog;
 
-        public static App Create(string url, IGitDb repo, IEnumerable<User> users)
+        public static App Create(string url, IGitServer repo, IEnumerable<User> users)
         {
             var builder = new ContainerBuilder();
-            builder.RegisterInstance(repo).As<IGitDb>().ExternallyOwned();
+            builder.RegisterInstance(repo).As<IGitServer>().ExternallyOwned();
             builder.RegisterApiControllers(typeof(App).Assembly);
 
             var app = new App

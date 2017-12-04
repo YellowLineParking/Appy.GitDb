@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\IGitDb.cs" />
+    <Compile Include="Interfaces\IGitServer.cs" />
     <Compile Include="Interfaces\ITransaction.cs" />
     <Compile Include="Model\ApiModel.cs" />
     <Compile Include="Model\Author.cs" />

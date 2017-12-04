@@ -16,13 +16,18 @@ namespace Appy.GitDb.Remote
     {
         readonly int _batchSize = 50;
         readonly HttpClient _client;
+        readonly string _name;
 
-        public RemoteGitDb(HttpClient client) => 
-            _client = client;
-
-        public RemoteGitDb(string userName, string password, string url, int batchSize = 50)
+        public RemoteGitDb(HttpClient client, string name)
         {
-            _batchSize = batchSize;
+            _client = client;
+            _name = name;
+        }
+
+        public RemoteGitDb(string name, string userName, string password, string url, int batchSize = 50)
+        {
+            _name = name;
+			_batchSize = batchSize;
             _client = new HttpClient{BaseAddress = new Uri(url)};
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}")));
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -33,7 +38,7 @@ namespace Appy.GitDb.Remote
             HttpUtility.UrlEncode(value);
 
         public Task<string> Get(string branch, string key) =>
-            _client.GetAsync<string>($"/{branch}/document/{urlEncode(key)}");
+            _client.GetAsync<string>($"/data/{_name}/{branch}/document/{urlEncode(key)}");
 
         public async Task<T> Get<T>(string branch, string key) where T : class
         {
@@ -44,15 +49,15 @@ namespace Appy.GitDb.Remote
         }
 
         public async Task<IReadOnlyCollection<T>> GetFiles<T>(string branch, string key) =>
-            (await _client.GetAsync<List<string>>($"/{branch}/documents/{key}"))
+            (await _client.GetAsync<List<string>>($"/data/{_name}/{branch}/documents/{key}"))
                           .Select(JsonConvert.DeserializeObject<T>)
                           .ToArray();
 
         public async Task<IReadOnlyCollection<string>> GetFiles(string branch, string key) =>
-            await _client.GetAsync<List<string>>($"/{branch}/documents/{key}");
+            await _client.GetAsync<List<string>>($"/data/{_name}/{branch}/documents/{key}");
 
         public Task<string> Save(string branch, string message, Document document, Author author) =>
-            _client.PostAsync($"/{branch}/document", new SaveRequest
+            _client.PostAsync($"/data/{_name}/{branch}/document", new SaveRequest
             {
                 Message = message,
                 Document = document,
@@ -63,7 +68,7 @@ namespace Appy.GitDb.Remote
             Save(branch, message, Document.From(document), author);
 
         public Task<string> Delete(string branch, string key, string message, Author author) =>
-             _client.PostAsync($"/{branch}/document/delete", new DeleteRequest
+             _client.PostAsync($"/data/{_name}/{branch}/document/delete", new DeleteRequest
              {
                  Message = message,
                  Key = key,
@@ -72,47 +77,47 @@ namespace Appy.GitDb.Remote
                .AsStringResponse();       
 
         public Task Tag(Reference reference) =>
-            _client.PostAsync("/tag", reference)
+            _client.PostAsync($"/data/{_name}/tag", reference)
                    .WhenSuccessful();
 
         public Task DeleteTag(string tag) =>
-            _client.DeleteAsync($"tag/{tag}")
+            _client.DeleteAsync($"/data/{_name}/tag/{tag}")
                    .WhenSuccessful();
 
         public Task CreateBranch(Reference reference) =>
-            _client.PostAsync("/branch", reference)
+            _client.PostAsync($"/data/{_name}/branch", reference)
                    .WhenSuccessful();
 
         public Task<IEnumerable<string>> GetAllBranches() =>
-            _client.GetAsync<IEnumerable<string>>("/branch");
+            _client.GetAsync<IEnumerable<string>>($"/data/{_name}/branch");
 
         public async Task<ITransaction> CreateTransaction(string branch) =>
-            await RemoteTransaction.Create(_client, branch, _batchSize);
+            await RemoteTransaction.Create(_client, _name, branch, _batchSize);
 
         public void Dispose() => 
             _client.Dispose();
 
         public Task<string> MergeBranch(string source, string target, Author author, string message) =>
-            _client.PostAsync("/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
+            _client.PostAsync($"/data/{_name}/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
                    .WhenSuccessful()
                    .AsStringResponse();
 
         public Task DeleteBranch(string branch) =>
-            _client.DeleteAsync(branch)
+            _client.DeleteAsync($"/data/{_name}/{branch}")
                    .WhenSuccessful();
 
         public async Task<Diff> Diff(string reference, string reference2) =>
-            JsonConvert.DeserializeObject<Diff>(await _client.GetAsync($"/diff/{reference}/{reference2}")
+            JsonConvert.DeserializeObject<Diff>(await _client.GetAsync($"/data/{_name}/diff/{reference}/{reference2}")
                        .WhenSuccessful()
                        .AsStringResponse());
 
         public async Task<List<CommitInfo>> Log(string reference, string reference2) =>
-            JsonConvert.DeserializeObject<List<CommitInfo>>(await _client.GetAsync($"/log/{reference}/{reference2}")
+            JsonConvert.DeserializeObject<List<CommitInfo>>(await _client.GetAsync($"/data/{_name}/log/{reference}/{reference2}")
                 .WhenSuccessful()
                 .AsStringResponse());
 
         public Task CloseTransactions(string branch) =>
-             _client.PostAsync($"/{branch}/transactions/close", null)
+             _client.PostAsync($"/data/{_name}/{branch}/transactions/close", null)
                     .WhenSuccessful()
                     .AsStringResponse();
     }

@@ -5,7 +5,7 @@ using Appy.GitDb.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
-namespace Appy.GitDb.Tests
+namespace Appy.GitDb.Tests.Api
 {
     public class ReadingFromTheRepositoryWithoutAuthentication : WithRepo
     {

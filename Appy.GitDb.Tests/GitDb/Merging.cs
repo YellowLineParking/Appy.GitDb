@@ -7,7 +7,7 @@ using FluentAssertions;
 using Xunit;
 using Reference = Appy.GitDb.Core.Model.Reference;
 
-namespace Appy.GitDb.Tests
+namespace Appy.GitDb.Tests.GitDb
 {
     public class MergingWhenThereAreNoConflicts : WithRepo
     {
