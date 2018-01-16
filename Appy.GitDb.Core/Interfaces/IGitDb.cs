@@ -29,5 +29,7 @@ namespace Appy.GitDb.Core.Interfaces
         Task DeleteBranch(string branch);
 
         Task<Diff> Diff(string reference, string reference2);
+
+        Task<List<CommitInfo>> Log(string reference, string reference2);
     }
 }

@@ -42,6 +42,7 @@
     <Compile Include="Interfaces\ITransaction.cs" />
     <Compile Include="Model\ApiModel.cs" />
     <Compile Include="Model\Author.cs" />
+    <Compile Include="Model\CommitInfo.cs" />
     <Compile Include="Model\Diff.cs" />
     <Compile Include="Model\Document.cs" />
     <Compile Include="Model\Reference.cs" />

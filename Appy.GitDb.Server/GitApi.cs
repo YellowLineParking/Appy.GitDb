@@ -153,6 +153,12 @@ namespace Appy.GitDb.Server
         public Task<IHttpActionResult> Diff(string reference, string reference2) =>
             result(() => _gitDb.Diff(reference, reference2));
 
+        [Route("log/{reference}/{reference2}")]
+        [HttpGet]
+        [Authorize(Roles = "admin,read")]
+        public Task<IHttpActionResult> Log(string reference, string reference2) =>
+            result(() => _gitDb.Log(reference, reference2));
+
 
         async Task<IHttpActionResult> result<T>(Func<Task<T>> action)
         {
