@@ -104,6 +104,11 @@ namespace Appy.GitDb.Remote
                        .WhenSuccessful()
                        .AsStringResponse());
 
+        public async Task<List<CommitInfo>> Log(string reference, string reference2) =>
+            JsonConvert.DeserializeObject<List<CommitInfo>>(await _client.GetAsync($"/log/{reference}/{reference2}")
+                .WhenSuccessful()
+                .AsStringResponse());
+
         public Task CloseTransactions(string branch) =>
              _client.PostAsync($"/{branch}/transactions/close", null)
                     .WhenSuccessful()

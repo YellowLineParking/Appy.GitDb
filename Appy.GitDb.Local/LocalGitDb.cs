@@ -316,6 +316,40 @@ namespace Appy.GitDb.Local
             });
         }
 
+        public Task<List<CommitInfo>> Log(string reference, string reference2)
+        {
+            var commit = getCommitFromReference(reference);
+            var commit2 = getCommitFromReference(reference2);
+
+            if (commit == null || commit2 == null)
+            {
+                var invalidRefs = (commit == null ? reference : string.Empty) + " " + (commit2 == null ? reference2 : string.Empty);
+                var message = $"Could not get log between {reference} and {reference2}: invalid reference(s): {invalidRefs}";
+                _logger.Warn(message);
+                throw new ArgumentException(message);
+            }
+
+            if (commit == commit2) return Task.FromResult(new List<CommitInfo>());
+            var commits = _repo.Commits
+                               .QueryBy(new CommitFilter {ExcludeReachableFrom = commit, IncludeReachableFrom = commit2, SortBy = CommitSortStrategies.Topological})
+                               .ToList();
+            var logs = commits
+                .Select(c => new CommitInfo
+                {
+                    Author = new Author(c.Author.Name, c.Author.Email),
+                    CommitDate = c.Author.When.DateTime,
+                    Message = c.Message,
+                    Sha = c.Sha
+                })
+                .ToList();
+            return Task.FromResult(logs);
+        }
+
+        Commit getCommitFromReference(string reference) =>
+            (_repo.Lookup<Commit>(reference) ??
+             _repo.Branches[reference]?.Tip) ??
+            ((Commit)_repo.Tags[reference]?.PeeledTarget);
+
         Tree getTreeFromReference(string reference) => 
             (_repo.Lookup<Commit>(reference)?.Tree ?? 
             _repo.Branches[reference]?.Tip?.Tree) ?? 
