@@ -13,22 +13,24 @@ namespace Appy.GitDb.Remote
     {
         readonly HttpClient _client;
         readonly string _transactionId;
+        readonly int _batchSize;
         bool _isOpen;
-        RemoteTransaction(HttpClient client, string transactionId)
+        RemoteTransaction(HttpClient client, string transactionId, int batchSize)
         {
             _client = client;
             _transactionId = transactionId;
+            _batchSize = batchSize;
             _isOpen = true;
         }
 
-        public static async Task<RemoteTransaction> Create(HttpClient client, string branch)
+        public static async Task<RemoteTransaction> Create(HttpClient client, string branch, int batchSize)
         {
             var transactionId = (await (await client.PostAsync($"/{branch}/transaction", new StringContent("", Encoding.UTF8))
                                                     .WhenSuccessful())
                                                     .Content
                                                     .ReadAsStringAsync())
                                                     .Replace("\"", "");
-            return new RemoteTransaction(client, transactionId);
+            return new RemoteTransaction(client, transactionId, batchSize);
         }
 
         T executeIfOpen<T>(Func<T> action)
@@ -50,7 +52,7 @@ namespace Appy.GitDb.Remote
         public Task DeleteMany(IEnumerable<string> keys) =>
             executeIfOpen(async () =>
              {
-                 foreach (var batch in keys.Batch(50))
+                 foreach (var batch in keys.Batch(_batchSize))
                      await _client.PostAsync($"/{_transactionId}/deleteMany", batch).WhenSuccessful();
              });
             
@@ -61,7 +63,7 @@ namespace Appy.GitDb.Remote
         public Task AddMany(IEnumerable<Document> documents) =>
             executeIfOpen(async () =>
             {
-                foreach (var batch in documents.Batch(50))
+                foreach (var batch in documents.Batch(_batchSize))
                     await _client.PostAsync($"/{_transactionId}/addMany", batch).WhenSuccessful();
             });
 

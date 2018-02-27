@@ -14,13 +14,15 @@ namespace Appy.GitDb.Remote
 {
     public class RemoteGitDb : IGitDb
     {
+        readonly int _batchSize = 50;
         readonly HttpClient _client;
 
         public RemoteGitDb(HttpClient client) => 
             _client = client;
 
-        public RemoteGitDb(string userName, string password, string url)
+        public RemoteGitDb(string userName, string password, string url, int batchSize = 50)
         {
+            _batchSize = batchSize;
             _client = new HttpClient{BaseAddress = new Uri(url)};
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}")));
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -85,7 +87,7 @@ namespace Appy.GitDb.Remote
             _client.GetAsync<IEnumerable<string>>("/branch");
 
         public async Task<ITransaction> CreateTransaction(string branch) =>
-            await RemoteTransaction.Create(_client, branch);
+            await RemoteTransaction.Create(_client, branch, _batchSize);
 
         public void Dispose() => 
             _client.Dispose();
