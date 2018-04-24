@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -26,7 +27,7 @@ namespace Appy.GitDb.Remote
         public RemoteGitDb(string userName, string password, string url, int batchSize = 50)
         {
             _batchSize = batchSize;
-            _client = new HttpClient{BaseAddress = new Uri(url)};
+            _client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,  }) {BaseAddress = new Uri(url)};
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}")));
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -99,6 +100,11 @@ namespace Appy.GitDb.Remote
             _client.PostAsync("/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
                    .WhenSuccessful()
                    .AsStringResponse();
+
+        public Task<string> RebaseBranch(string source, string target, Author author, string message) =>
+            _client.PostAsync("/rebase", new MergeRequest { Target = target, Source = source, Author = author, Message = message })
+                .WhenSuccessful()
+                .AsStringResponse();
 
         public Task DeleteBranch(string branch) =>
             _client.DeleteAsync(branch)

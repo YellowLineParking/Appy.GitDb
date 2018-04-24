@@ -120,6 +120,7 @@
     <Compile Include="GettingAValue.cs" />
     <Compile Include="DeletingAValue.cs" />
     <Compile Include="Branching.cs" />
+    <Compile Include="Rebasing.cs" />
     <Compile Include="Merging.cs" />
     <Compile Include="Tagging.cs" />
     <Compile Include="Transactions.cs" />

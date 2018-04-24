@@ -27,4 +27,12 @@
         public Author Author { get; set; }
         public string Message { get; set; }
     }
+
+    public class RebaseRequest
+    {
+        public string Source { get; set; }
+        public string Target { get; set; }
+        public Author Author { get; set; }
+        public string Message { get; set; }
+    }
 }

@@ -267,6 +267,49 @@ namespace Appy.GitDb.Local
             }
         }
 
+        public Task<string> RebaseBranch(string source, string target, Author author, string message)
+        {
+
+            var signature = getSignature(author);
+            var targetBranch = _repo.Branches[target];
+            var sourceBranch = _repo.Branches[source];
+
+            if (isTransactionInProgress(source))
+            {
+                var exceptionMessage = $"There is a transaction in progress for branch {source}. Complete the transaction first.";
+                _logger.Warn(exceptionMessage);
+                throw new ArgumentException(exceptionMessage);
+            }
+
+            lock (getLock(source))
+            {
+                var mergeRes = _repo.ObjectDatabase.MergeCommits(sourceBranch.Tip, targetBranch.Tip, new MergeTreeOptions { FailOnConflict = true });
+                if (mergeRes.Status != MergeTreeStatus.Succeeded)
+                {
+                    var logMessage = $"Could not rebase {source} onto {target} because of conflicts. Please merge manually";
+                    _logger.Trace(logMessage);
+                    throw new NotSupportedException(logMessage);
+                }
+
+                var previousCommit = targetBranch.Tip;
+                var tree = mergeRes.Tree;
+
+                if (previousCommit != null && previousCommit.Tree.Id == tree.Id)
+                    return Task.FromResult(string.Empty);
+
+                var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
+                var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
+
+                _repo.Refs.UpdateTarget(_repo.Refs[sourceBranch.CanonicalName], commit.Id);
+
+                _logger.Trace($"Squashed and rebased {source} onto {target} with message {message}");
+
+                push(source);
+
+                return Task.FromResult(commit.Sha);
+            }
+        }
+
         public Task DeleteBranch(string branch)
         {
             if (!_branchLocks.ContainsKey(branch))
