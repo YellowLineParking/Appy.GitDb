@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Appy.GitDb.Tests.Utils
@@ -35,6 +36,13 @@ namespace Appy.GitDb.Tests.Utils
                     return exception;
                 throw;
             }
+        }
+
+        public static void ForEach<T>(this IEnumerable<T> collection, Action<T, int> action)
+        {
+            var index = 0;
+            foreach (var item in collection)
+                action(item, index++);
         }
     }
 }

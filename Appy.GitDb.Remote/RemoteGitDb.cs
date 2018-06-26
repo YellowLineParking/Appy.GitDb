@@ -96,10 +96,10 @@ namespace Appy.GitDb.Remote
         public void Dispose() => 
             _client.Dispose();
 
-        public Task<string> MergeBranch(string source, string target, Author author, string message) =>
-            _client.PostAsync("/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
+        public async Task<MergeInfo> MergeBranch(string source, string target, Author author, string message) =>
+            JsonConvert.DeserializeObject<MergeInfo>(await _client.PostAsync("/merge", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
                    .WhenSuccessful()
-                   .AsStringResponse();
+                   .AsStringResponse());
 
         public Task<string> RebaseBranch(string source, string target, Author author, string message) =>
             _client.PostAsync("/rebase", new MergeRequest { Target = target, Source = source, Author = author, Message = message })

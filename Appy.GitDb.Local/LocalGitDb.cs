@@ -11,6 +11,7 @@ using LibGit2Sharp.Handlers;
 using Newtonsoft.Json;
 using NLog;
 using Diff = Appy.GitDb.Core.Model.Diff;
+using MergeStatus = Appy.GitDb.Core.Model.MergeStatus;
 using Reference = Appy.GitDb.Core.Model.Reference;
 
 
@@ -222,9 +223,17 @@ namespace Appy.GitDb.Local
             return Task.CompletedTask;
         }
 
-        public Task<string> MergeBranch(string source, string target, Author author, string message)
-        {
-            
+        IList<ConflictInfo> mapToLocalConflicts(IEnumerable<Conflict> conflicts) =>
+            conflicts.Select(c => new ConflictInfo
+            {
+                SourceSha = (c.Ancestor ?? c.Ours).Id.Sha,
+                TargetSha = c.Theirs.Id.Sha,
+                Path = c.Theirs.Path,
+                Type = c.Ancestor == null ? ConflictType.Change : ConflictType.Remove
+            }).ToList();       
+
+        public Task<MergeInfo> MergeBranch(string source, string target, Author author, string message)
+        {            
             var signature = getSignature(author);
             var targetBranch = _repo.Branches[target];
             var sourceBranch = _repo.Branches[source];
@@ -238,12 +247,20 @@ namespace Appy.GitDb.Local
 
             lock (getLock(target))
             {
-                var mergeRes = _repo.ObjectDatabase.MergeCommits(sourceBranch.Tip, targetBranch.Tip, new MergeTreeOptions { FailOnConflict = true });
+                var mergeRes = _repo.ObjectDatabase.MergeCommits(sourceBranch.Tip, targetBranch.Tip, new MergeTreeOptions());
                 if (mergeRes.Status != MergeTreeStatus.Succeeded)
                 {
                     var logMessage = $"Could not merge {source} into {target} because of conflicts. Please merge manually";
                     _logger.Trace(logMessage);
-                    throw new NotSupportedException(logMessage);
+
+                    return Task.FromResult(new MergeInfo
+                    {
+                        Message = logMessage,
+                        SourceBranch = source,
+                        TargetBranch = target,
+                        Status = MergeStatus.Conflicts,
+                        Conflicts = mapToLocalConflicts(mergeRes.Conflicts)
+                    });
                 }
 
                 _repo.Branches.Remove(sourceBranch);
@@ -252,7 +269,7 @@ namespace Appy.GitDb.Local
                 var tree = mergeRes.Tree;
 
                 if (previousCommit != null && previousCommit.Tree.Id == tree.Id)
-                    return Task.FromResult(string.Empty);
+                    return Task.FromResult(MergeInfo.NewSucceded(source, target, string.Empty));
 
                 var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
                 var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
@@ -263,7 +280,7 @@ namespace Appy.GitDb.Local
 
                 push(target);
 
-                return Task.FromResult(commit.Sha);
+                return Task.FromResult(MergeInfo.NewSucceded(source, target, commit.Sha));
             }
         }
 
