@@ -131,8 +131,8 @@ namespace Appy.GitDb.Tests
         }
 
         [Fact]
-        public void ShouldSuccedWithValidInfo() =>     
-            _mergeResult.ShouldBeEquivalentTo(_mergeExpected);        
+        public void ShouldSuccedWithValidInfo() =>
+            _mergeResult.ShouldBeEquivalentTo(_mergeExpected);
 
         [Fact]
         public void DoesNotCreateACommitOnMaster() =>

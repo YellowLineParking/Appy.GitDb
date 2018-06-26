@@ -20,6 +20,6 @@ namespace Appy.GitDb.Core.Model
 
         public string SourceSha { get; set; }
 
-        public string Path { get; set; }    
+        public string Path { get; set; }
     }
 }
