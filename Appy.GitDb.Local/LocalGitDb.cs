@@ -11,9 +11,8 @@ using LibGit2Sharp.Handlers;
 using Newtonsoft.Json;
 using NLog;
 using Diff = Appy.GitDb.Core.Model.Diff;
-using MergeStatus = Appy.GitDb.Core.Model.MergeStatus;
+using MergeResult = Appy.GitDb.Core.Model.MergeResult;
 using Reference = Appy.GitDb.Core.Model.Reference;
-
 
 namespace Appy.GitDb.Local
 {
@@ -223,15 +222,6 @@ namespace Appy.GitDb.Local
             return Task.CompletedTask;
         }
 
-        IList<ConflictInfo> mapToLocalConflicts(IEnumerable<Conflict> conflicts) =>
-            conflicts.Select(c => new ConflictInfo
-            {
-                SourceSha = (c.Ancestor ?? c.Ours).Id.Sha,
-                TargetSha = c.Theirs.Id.Sha,
-                Path = c.Theirs.Path,
-                Type = c.Ancestor == null ? ConflictType.Change : ConflictType.Remove
-            }).ToList();       
-
         public Task<MergeInfo> MergeBranch(string source, string target, Author author, string message)
         {            
             var signature = getSignature(author);
@@ -258,8 +248,14 @@ namespace Appy.GitDb.Local
                         Message = logMessage,
                         SourceBranch = source,
                         TargetBranch = target,
-                        Status = MergeStatus.Conflicts,
-                        Conflicts = mapToLocalConflicts(mergeRes.Conflicts)
+                        Status = MergeResult.Conflicts,
+                        Conflicts = mergeRes.Conflicts.Select(c => new ConflictInfo
+                        {
+                            SourceSha = (c.Ancestor ?? c.Ours).Id.Sha,
+                            TargetSha = c.Theirs.Id.Sha,
+                            Path = c.Theirs.Path,
+                            Type = c.Ancestor == null ? ConflictType.Change : ConflictType.Remove
+                        }).ToList()
                     });
                 }
 
@@ -269,7 +265,7 @@ namespace Appy.GitDb.Local
                 var tree = mergeRes.Tree;
 
                 if (previousCommit != null && previousCommit.Tree.Id == tree.Id)
-                    return Task.FromResult(MergeInfo.NewSucceded(source, target, string.Empty));
+                    return Task.FromResult(MergeInfo.Succeded(source, target, string.Empty));
 
                 var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
                 var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
@@ -280,7 +276,7 @@ namespace Appy.GitDb.Local
 
                 push(target);
 
-                return Task.FromResult(MergeInfo.NewSucceded(source, target, commit.Sha));
+                return Task.FromResult(MergeInfo.Succeded(source, target, commit.Sha));
             }
         }
 
