@@ -265,7 +265,7 @@ namespace Appy.GitDb.Local
                 var tree = mergeRes.Tree;
 
                 if (previousCommit != null && previousCommit.Tree.Id == tree.Id)
-                    return Task.FromResult(MergeInfo.Succeded(source, target, string.Empty));
+                    return Task.FromResult(MergeInfo.Succeeded(source, target, string.Empty));
 
                 var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
                 var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
@@ -276,7 +276,7 @@ namespace Appy.GitDb.Local
 
                 push(target);
 
-                return Task.FromResult(MergeInfo.Succeded(source, target, commit.Sha));
+                return Task.FromResult(MergeInfo.Succeeded(source, target, commit.Sha));
             }
         }
 

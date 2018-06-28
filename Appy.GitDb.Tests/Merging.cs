@@ -16,9 +16,10 @@ namespace Appy.GitDb.Tests
         int _index;
         readonly List<int> _addedFiles = new List<int>();
         readonly List<int> _removedFiles = new List<int>();
-        MergeInfo _firstMergeResult;        
-        MergeInfo _secondMergeResult;        
+        MergeInfo _firstMergeResult;
+        MergeInfo _secondMergeResult;
         string _commitBeforeSecondMerge;
+        string _commitAfterSecondMerge;
 
         protected override async Task Because()
         {
@@ -49,6 +50,8 @@ namespace Appy.GitDb.Tests
             _commitBeforeSecondMerge = Repo.Branches["master"].Tip.Sha;
 
             _secondMergeResult = await Subject.MergeBranch("test", "master", Author, "This is the merge commit for branch test");
+
+            _commitAfterSecondMerge = Repo.Branches["master"].Tip.Sha;;
         }
 
         async Task addItems(string branch)
@@ -74,11 +77,11 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void FirstMergesShouldSuccedWithValidInfo() => 
-            _firstMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeded("test2", "master", Repo.Branches["master"].Tip.Sha));
+            _firstMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test2", "master", _commitBeforeSecondMerge));
 
         [Fact]
         public void SecondMergeShouldSuccedWithValidInfo() => 
-            _secondMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeded("test", "master", Repo.Branches["master"].Tip.Sha));
+            _secondMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test", "master", _commitAfterSecondMerge));
 
         [Fact]
         public async Task AddsTheCorrectFilesToMaster() =>
@@ -123,7 +126,7 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void MergeShouldSuccedWithValidInfo() =>
-            _mergeResult.ShouldBeEquivalentTo(MergeInfo.Succeded("test", "master", string.Empty));
+            _mergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test", "master", string.Empty));
 
         [Fact]
         public void DoesNotCreateACommitOnMaster() =>

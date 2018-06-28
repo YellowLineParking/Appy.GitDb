@@ -17,7 +17,7 @@ namespace Appy.GitDb.Core.Model
         public MergeResult Status { get; set; }
         public IList<ConflictInfo> Conflicts { get; set; }
 
-        public static MergeInfo Succeded(string sourceBranch, string targetBranch, string commitSha) =>
+        public static MergeInfo Succeeded(string sourceBranch, string targetBranch, string commitSha) =>
             new MergeInfo
             {
                 CommitSha = commitSha,
