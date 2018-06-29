@@ -251,10 +251,10 @@ namespace Appy.GitDb.Local
                         Status = MergeResult.Conflicts,
                         Conflicts = mergeRes.Conflicts.Select(c => new ConflictInfo
                         {
-                            SourceSha = (c.Ancestor ?? c.Ours).Id.Sha,
-                            TargetSha = c.Theirs.Id.Sha,
-                            Path = c.Theirs.Path,
-                            Type = c.Ancestor == null ? ConflictType.Change : ConflictType.Remove
+                            SourceSha = c.Ours?.Id.Sha,
+                            TargetSha = c.Theirs?.Id.Sha,
+                            Path = c.Ours?.Path ?? c.Theirs.Path,
+                            Type = object.ReferenceEquals(c.Ours, null) || object.ReferenceEquals(c.Theirs, null) ? ConflictType.Remove : ConflictType.Change
                         }).ToList()
                     });
                 }

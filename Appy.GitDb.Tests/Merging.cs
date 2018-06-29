@@ -226,16 +226,13 @@ namespace Appy.GitDb.Tests
         {
             _mergeResult.Conflicts.ForEach((c, i) =>
             {
-                var sourceBlob = Repo.Lookup<Blob>(new ObjectId(c.SourceSha));
                 var targetBlob = Repo.Lookup<Blob>(new ObjectId(c.TargetSha));
-                var sourceValue = sourceBlob.GetContentText();
                 var targetValue = targetBlob.GetContentText();
                 var value = i + 1;
 
-                sourceValue.Should().Be(MapToDocumentValue(value));
+                c.SourceSha.Should().BeNull();
                 targetValue.Should().Be(MapToDocumentValue(value, true));
 
-                c.SourceSha = null;
                 c.TargetSha = null;
             });
 
