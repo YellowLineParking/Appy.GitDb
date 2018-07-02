@@ -26,7 +26,7 @@ namespace Appy.GitDb.Core.Interfaces
         Task CloseTransactions(string branch);
 
         Task<MergeInfo> MergeBranch(string source, string target, Author author, string message);
-        Task<string> RebaseBranch(string source, string target, Author author, string message);
+        Task<RebaseInfo> RebaseBranch(string source, string target, Author author, string message);
         Task DeleteBranch(string branch);
 
         Task<Diff> Diff(string reference, string reference2);

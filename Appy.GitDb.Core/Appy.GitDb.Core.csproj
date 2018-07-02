@@ -46,6 +46,7 @@
     <Compile Include="Model\ConflictInfo.cs" />
     <Compile Include="Model\Diff.cs" />
     <Compile Include="Model\Document.cs" />
+    <Compile Include="Model\RebaseInfo.cs" />
     <Compile Include="Model\MergeInfo.cs" />
     <Compile Include="Model\Reference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
