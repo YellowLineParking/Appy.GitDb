@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using NLog;
 using Diff = Appy.GitDb.Core.Model.Diff;
 using MergeResult = Appy.GitDb.Core.Model.MergeResult;
+using RebaseResult = Appy.GitDb.Core.Model.RebaseResult;
 using Reference = Appy.GitDb.Core.Model.Reference;
 
 namespace Appy.GitDb.Local
@@ -280,7 +281,7 @@ namespace Appy.GitDb.Local
             }
         }
 
-        public Task<string> RebaseBranch(string source, string target, Author author, string message)
+        public Task<RebaseInfo> RebaseBranch(string source, string target, Author author, string message)
         {
 
             var signature = getSignature(author);
@@ -296,19 +297,33 @@ namespace Appy.GitDb.Local
 
             lock (getLock(source))
             {
-                var mergeRes = _repo.ObjectDatabase.MergeCommits(sourceBranch.Tip, targetBranch.Tip, new MergeTreeOptions { FailOnConflict = true });
+                var mergeRes = _repo.ObjectDatabase.MergeCommits(sourceBranch.Tip, targetBranch.Tip, new MergeTreeOptions());
                 if (mergeRes.Status != MergeTreeStatus.Succeeded)
                 {
                     var logMessage = $"Could not rebase {source} onto {target} because of conflicts. Please merge manually";
                     _logger.Trace(logMessage);
-                    throw new NotSupportedException(logMessage);
+
+                    return Task.FromResult(new RebaseInfo
+                    {
+                        Message = logMessage,
+                        SourceBranch = source,
+                        TargetBranch = target,
+                        Status = RebaseResult.Conflicts,
+                        Conflicts = mergeRes.Conflicts.Select(c => new ConflictInfo
+                        {
+                            SourceSha = c.Ours?.Id.Sha,
+                            TargetSha = c.Theirs?.Id.Sha,
+                            Path = c.Ours?.Path ?? c.Theirs.Path,
+                            Type = object.ReferenceEquals(c.Ours, null) || object.ReferenceEquals(c.Theirs, null) ? ConflictType.Remove : ConflictType.Change
+                        }).ToList()
+                    });
                 }
 
                 var previousCommit = targetBranch.Tip;
                 var tree = mergeRes.Tree;
 
                 if (previousCommit != null && previousCommit.Tree.Id == tree.Id)
-                    return Task.FromResult(string.Empty);
+                    return Task.FromResult(RebaseInfo.Succeeded(source, target, string.Empty));
 
                 var ancestors = previousCommit != null ? new List<Commit> { previousCommit } : new List<Commit>();
                 var commit = _repo.ObjectDatabase.CreateCommit(signature, signature, message, tree, ancestors, false);
@@ -319,7 +334,7 @@ namespace Appy.GitDb.Local
 
                 push(source);
 
-                return Task.FromResult(commit.Sha);
+                return Task.FromResult(RebaseInfo.Succeeded(source, target, commit.Sha));
             }
         }
 
