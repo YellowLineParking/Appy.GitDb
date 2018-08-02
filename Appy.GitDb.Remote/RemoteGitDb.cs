@@ -102,7 +102,7 @@ namespace Appy.GitDb.Remote
                    .AsStringResponse());
 
         public async Task<RebaseInfo> RebaseBranch(string source, string target, Author author, string message) =>
-            JsonConvert.DeserializeObject<RebaseInfo>(await _client.PostAsync("/rebase", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
+            JsonConvert.DeserializeObject<RebaseInfo>(await _client.PostAsync($"/{target}/rebase", new MergeRequest {Target = target, Source = source, Author = author, Message = message})
                 .WhenSuccessful()
                 .AsStringResponse());
 

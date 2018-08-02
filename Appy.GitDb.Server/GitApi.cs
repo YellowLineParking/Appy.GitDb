@@ -147,7 +147,7 @@ namespace Appy.GitDb.Server
         public Task<IHttpActionResult> Merge(MergeRequest mergeRequest) =>
            result(() =>_gitDb.MergeBranch(mergeRequest.Source, mergeRequest.Target, mergeRequest.Author, mergeRequest.Message));
 
-        [Route("rebase")]
+        [Route("{branch}/rebase")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
         public Task<IHttpActionResult> Rebase(RebaseRequest rebaseRequest) =>
