@@ -55,6 +55,12 @@ namespace Appy.GitDb.Remote
         public async Task<IReadOnlyCollection<string>> GetFiles(string branch, string key) =>
             await _client.GetAsync<List<string>>($"/{branch}/documents/{key}");
 
+        public async Task<PagedFiles<T>> GetFilesPaged<T>(string branch, string key, int start, int pageSize) => 
+            (await GetFilesPaged(branch, key, start, pageSize)).As<T>();
+
+        public Task<PagedFiles<string>> GetFilesPaged(string branch, string key, int start, int pageSize) =>
+            _client.GetAsync<PagedFiles<string>>($"/{branch}/{start}/{pageSize}/documents/{key}");
+
         public Task<string> Save(string branch, string message, Document document, Author author) =>
             _client.PostAsync($"/{branch}/document", new SaveRequest
             {

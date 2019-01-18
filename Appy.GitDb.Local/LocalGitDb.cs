@@ -156,6 +156,31 @@ namespace Appy.GitDb.Local
                       .ToList() ?? 
                 new List<string>()));
 
+        public async Task<PagedFiles<T>> GetFilesPaged<T>(string branch, string key, int start, int pageSize) => 
+            (await GetFilesPaged(branch, key, start, pageSize)).As<T>();
+
+        public Task<PagedFiles<string>> GetFilesPaged(string branch, string key, int start, int pageSize)
+        {
+            var allBlobs = (_repo.Branches[branch]?.Tip[key]?.Target as Tree)?
+                                 .Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
+                                 .Select(entry => entry.Target)
+                                 .Cast<Blob>()
+                                 .ToList();
+
+            var page = allBlobs?.Skip(start)
+                                .Take(pageSize)
+                                .Select(blob => blob.GetContentText())
+                                .ToList() ?? new List<string>();
+
+            return Task.FromResult(new PagedFiles<string>
+            {
+                Total = allBlobs?.Count ?? 0,
+                Start = start,
+                End = start + page.Count,
+                Files = page
+            });
+        }
+
         public Task<string> Save(string branch, string message, Document document, Author author)
         {
             if (string.IsNullOrEmpty(document.Key))
