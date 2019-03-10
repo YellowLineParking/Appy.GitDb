@@ -31,13 +31,11 @@ namespace Appy.GitDb.Remote
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}")));
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
-
-
-        string urlEncode(string value) =>
+        static string urlEncode(string value) =>
             HttpUtility.UrlEncode(value);
 
-        public Task<string> Get(string branch, string key) =>
-            _client.GetAsync<string>($"/{branch}/document/{urlEncode(key)}");
+        public Task<string> Get(string branch, string key) =>        
+            _client.GetAsync<string>($"/{branch}/document/{urlEncode(key)}");        
 
         public async Task<T> Get<T>(string branch, string key) where T : class
         {

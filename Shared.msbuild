@@ -1,0 +1,128 @@
+<Project>
+
+  <PropertyGroup>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Title>$(AssemblyName)</Title>
+    <Product>$(AssemblyName)</Product>
+    <Description>$(AssemblyName)</Description>
+    <Copyright>Copyright (c) Yellow Line Parking</Copyright>
+    <Authors>Yellow Line Parking</Authors>
+    <Company>Yellow Line Parking</Company>
+    <PackageIconUrl>https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/logo.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/YellowLineParking/Appy.GitDb</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/YellowLineParking/Appy.GitDb.git</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/YellowLineParking/Appy.GitDb/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>git;database;nosql</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.0</NetStandardImplicitPackageVersion>    
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.2' ">2.0.0</NetStandardImplicitPackageVersion>    
+  </PropertyGroup>
+
+  <!-- Framework constants -->
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <DefineConstants>$(DefineConstants);NETFX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!-- Platform constants -->
+  <PropertyGroup Condition=" '$(PlatformTarget)' == 'x86' ">
+    <DefineConstants>$(DefineConstants);PLATFORM_X86</DefineConstants>    
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+  </PropertyGroup>
+
+  <!-- workaround for nuget packages with referenced projects https://github.com/nuget/home/issues/3891 -->
+  <PropertyGroup>
+      <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('PrivateAssets', 'All'))" />
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup Label="NetFramework Package Versions">    
+    <AutofacOwinPackageVersion>4.2.0</AutofacOwinPackageVersion>
+    <AutofacWebApi2OwinPackageVersion>4.0.0</AutofacWebApi2OwinPackageVersion>
+    <MicrosoftOwinPackageVersion>3.1.0</MicrosoftOwinPackageVersion>
+    <MicrosoftOwinHostPackageVersion>3.0.1</MicrosoftOwinHostPackageVersion>
+    <MicrosoftOwinSecurityPackageVersion>2.1.0</MicrosoftOwinSecurityPackageVersion>
+    <OwinPackageVersion>1.0.0</OwinPackageVersion>    
+    <OwinCompressionPackageVersion>1.0.15</OwinCompressionPackageVersion>
+    <MicrosoftAspNetWebApiPackageVersion>5.2.3</MicrosoftAspNetWebApiPackageVersion>
+    <IdentityModelOwinBasicAuthenticationPackageVersion>1.0.1</IdentityModelOwinBasicAuthenticationPackageVersion>
+  </PropertyGroup>
+  
+  <PropertyGroup Label="NetStandard Package Versions">
+    <AutofacPackageVersion>4.8.1</AutofacPackageVersion>
+    <AutofacExtDependencyInjectionPackageVersion>4.3.1</AutofacExtDependencyInjectionPackageVersion>
+    <OctopusToolsPackageVersion>3.5.4</OctopusToolsPackageVersion>
+    <CastleCorePackageVersion>4.3.1</CastleCorePackageVersion>                  
+    <FSharpCorePackageVersion>4.5.4</FSharpCorePackageVersion>
+    <NewtonsoftJsonPackageVersion>12.0.1</NewtonsoftJsonPackageVersion>
+    <NLogPackageVersion>4.5.11</NLogPackageVersion>
+    <CsvHelperPackageVersion>12.1.1</CsvHelperPackageVersion>
+    <LibGit2SharpPackageVersion>0.25.4</LibGit2SharpPackageVersion>
+    <LibGit2SharpNativeBinariesPackageVersion>1.0.252</LibGit2SharpNativeBinariesPackageVersion>
+    <YamlDotNetPackageVersion>5.3.0</YamlDotNetPackageVersion>
+    <InvokeBuildPackageVersion>5.4.2</InvokeBuildPackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Netcore Packages">
+    <MicrosoftAspNetCoreApp>2.2.2</MicrosoftAspNetCoreApp>
+    <NLogWebAspNetCorePackageVersion>4.7.1</NLogWebAspNetCorePackageVersion>    
+  </PropertyGroup>
+
+  <PropertyGroup Label="Microsoft System Package Version">
+    <SystemValueTuplePackageVersion>4.5.0</SystemValueTuplePackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Test Package Version">
+    <MicrosoftNETTestSdkPackageVersion>15.9.0</MicrosoftNETTestSdkPackageVersion>
+    <MicrosoftAspNetCoreTestHost>2.2.0</MicrosoftAspNetCoreTestHost>
+    <DotnetXunitCliPackageVersion>2.3.1</DotnetXunitCliPackageVersion>
+    <FluentAssertionsPackageVersion>5.5.3</FluentAssertionsPackageVersion>
+    <MoqPackageVersion>4.10.1</MoqPackageVersion>
+    <MoqAutoMockPackageVersion>1.2.0.120</MoqAutoMockPackageVersion>
+    <XunitPackageVersion>2.4.1</XunitPackageVersion>
+    <XunitRunnerConsolePackageVersion>2.4.1</XunitRunnerConsolePackageVersion>
+    <XunitRunnerVisualStudioPackageVersion>2.4.1</XunitRunnerVisualStudioPackageVersion>
+    <XunitXmlTestLogger>2.1.26</XunitXmlTestLogger>
+  </PropertyGroup>
+
+  <!-- Shared assembly version info for all the projects --> 
+  <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+</Project>

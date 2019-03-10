@@ -1,8 +1,10 @@
-<a href="https://ci.appveyor.com/project/yellowlineparking/ylp-gitdb">
-  <img src="https://ci.appveyor.com/api/projects/status/github/YellowLineParking/Appy.GitDb?branch=master&svg=true" width="200" />
-</a>
 
 # Appy.GitDb
+
+<a href="https://ci.appveyor.com/project/yellowlineparking/ylp-gitdb">
+  <img src="https://ci.appveyor.com/api/projects/status/github/YellowLineParking/Appy.GitDb?branch=master&svg=true"  />
+</a>
+
 
 Appy.GitDb is a set of packages and applications to use Git as a NoSql database
 
@@ -17,13 +19,22 @@ GitDb can be accessd in two different modes:
 
 To start using GitDb locally, first install the `Appy.GitDb.Local` NuGet package:
 
-```
+- Package Manager Console
+```csharp
 Install-Package Appy.GitDb.Local
 ```
 
+or 
+
+- .NET CLI Console
+```
+dotnet add package CsvHelper
+```
+
+
 Now you can use a local repository as a Git database:
 
-```
+```csharp
 // 1. Instantiate a new instance of the local git database
 IGitDb db = new LocalGitDb(@"c:\path\to\a\repository");
 
@@ -49,7 +60,7 @@ Once the server is installed, you can use the `Appy.GitDb.Remote` package to tal
 Install-Package Appy.GitDb.Remote
 ```
 
-```
+```csharp
 // 1. Instantiate a new instance of the remote git database
 IGitDb db = new RemoteGitDb("username", "password", "http://url-of-git-database.com");
 
@@ -68,7 +79,7 @@ var theObject = db.Get<SomeClass>("master", "key")
 
 Both the local as well as the remote git db implement the same interface, so they're easily interchangeable. The interface is defined as follows:
 
-```
+```csharp
 public interface IGitDb : IDisposable
 {
     Task<string> Get(string branch, string key);
@@ -99,7 +110,7 @@ public interface IGitDb : IDisposable
 
 In order to add, update or remove multiple files in a single commit, you need to create a transaction. You can do so by creating a transaction from the database:
 
-```
+```csharp
 IGitDb db = // new LocalGitDb(...) or new RemoteGitDb(...)
 
 using(var transaction = await db.CreateTransaction("master"))
@@ -118,7 +129,7 @@ using(var transaction = await db.CreateTransaction("master"))
 
 The transaction returned from the `CreateTransaction`-method implements the following interface (in local as well as in remote mode):
 
-```
+```csharp
 public interface ITransaction : IDisposable
 {
     Task Add(Document document);
@@ -138,7 +149,7 @@ public interface ITransaction : IDisposable
 ## Branch management
 Currently, GitDb supports the following methods for managing branches:
 
-```
+```csharp
 // Creates a tag at the specified reference (commit, branch or other tag)
 Task Tag(Reference reference);
 
@@ -177,7 +188,7 @@ Install-Package Appy.GitDb.Watcher
 
 Now, we can set up the watcher to check for changes:
 
-```
+```csharp
 new Watcher(
   path: @"path\to\local\repository",
   interval: intervalToPollForChangesInMilliseconds,
@@ -188,7 +199,7 @@ new Watcher(
 ```
 The three methods will be called whenever the watcher detects any changes in the repository. They will be provided with the following arguments:
 
-```
+```csharp
 public class BranchAdded
 {
   // Newly created branch
