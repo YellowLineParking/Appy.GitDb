@@ -67,9 +67,9 @@ namespace Appy.GitDb.Tests
     public class GettingAListOfPagedFiles : WithRepo
     {
         readonly Dictionary<string, string> _rootDocuments = Enumerable.Range(0, 50)
-            .ToDictionary(i => $@"{Directory}\{i}_key", i => i + "_value");
+            .ToDictionary(i => $@"{Directory}/{i}_key", i => i + "_value");
         readonly Dictionary<string, string> _subDirectoryDocuments = Enumerable.Range(0, 5)
-            .ToDictionary(i => $@"{Directory}\subdirectory\{i}_key", i => i + "sub_value");
+            .ToDictionary(i => $@"{Directory}/subdirectory/{i}_key", i => i + "sub_value");
         List<string> _result;
         const string Directory = "directory";
         protected override async Task Because()

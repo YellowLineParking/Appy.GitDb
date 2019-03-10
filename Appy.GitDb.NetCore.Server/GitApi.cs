@@ -29,6 +29,12 @@ namespace Appy.GitDb.NetCore.Server
         public Task<IActionResult> GetFiles(string branch, string key) =>
             result(() => _gitDb.GetFiles(branch, key));
 
+        [Route("{branch}/{start}/{pageSize}/documents/{*key}")]
+        [HttpGet]
+        [Authorize(Roles = "admin, read")]
+        public Task<IActionResult> GetFilesPaged(string branch, string key, int start, int pageSize) =>
+            result(() => _gitDb.GetFilesPaged(branch, key, start, pageSize));
+
         [Route("{branch}/document")]
         [HttpPost]
         [Authorize(Roles = "admin,write")]
