@@ -27,7 +27,7 @@ namespace Appy.GitDb.Server
             var app = App.Create(url, new LocalGitDb(gitRepoPath, remoteUrl, userName, userEmail, password, transactionTimeout), new List<User>
             {
                 new User{ UserName = "GitAdmin", Password = ConfigurationManager.AppSettings["GitAdmin"], Roles = new [] { "admin","read","write" }},
-                new User{ UserName = "GitReader",Password = ConfigurationManager.AppSettings["GitAdmin"],Roles = new [] { "read" }},
+                new User{ UserName = "GitReader",Password = ConfigurationManager.AppSettings["GitReader"],Roles = new [] { "read" }},
                 new User{ UserName = "GitWriter", Password = ConfigurationManager.AppSettings["GitWriter"] ,Roles = new [] { "write" }}
             });
             using (app.Start())
