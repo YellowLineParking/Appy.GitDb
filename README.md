@@ -28,7 +28,7 @@ or
 
 - .NET CLI Console
 ```
-dotnet add package CsvHelper
+dotnet add package Appy.GitDb.Local
 ```
 
 
@@ -51,8 +51,7 @@ var theObject = await db.Get<SomeClass>("master", "key")
 ```
 
 ### Remote mode
-
-In order to use Git as a remote database, you need to install the `Appy.GitDb.Server` project on a server.
+In order to use Git as a remote database, you can use one of the servers projects `Appy.GitDb.Server` (MVC5) or `Appy.GitDb.NetCore.Server` (NETCore) as base or just the remote package on your own code.
 
 Once the server is installed, you can use the `Appy.GitDb.Remote` package to talk to the server:
 
@@ -263,3 +262,7 @@ build.bat dev
 This will execute the tasks `clean`, `compile`, `test`, `pack`
 You can execute any of these tasks separately by running `build <task>`
 
+## Contribute
+It would be awesome if you would like to contribute code or help with bugs. Just follow the guidelines [CONTRIBUTING](https://github.com/YellowLineParking/Appy.GitDb/blob/master/CONTRIBUTING.md).
+
+  
