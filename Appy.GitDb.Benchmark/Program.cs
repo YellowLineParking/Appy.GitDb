@@ -130,7 +130,7 @@ namespace Appy.GitDb.Benchmark
         public double Value12 { get; set; }
     }
 
-    sealed class EntryMap : CsvClassMap<CsvEntry>
+    sealed class EntryMap : ClassMap<CsvEntry>
     {
         public EntryMap()
         {
