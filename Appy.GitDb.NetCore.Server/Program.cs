@@ -35,16 +35,12 @@ namespace Appy.GitDb.NetCore.Server
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((hostingContext, config) => config
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)        
-                    .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment}.json", optional: true, reloadOnChange: true))
+            WebHost.CreateDefaultBuilder(args)                
                 .UseStartup<Startup>()
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
                     logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
-                    //logging.AddNLogProvider();
                 })
                 .UseNLog();
     }
