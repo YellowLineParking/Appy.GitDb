@@ -64,9 +64,9 @@ namespace Appy.GitDb.Tests
 
         void testDiff(Diff diff)
         {
-            diff.Added.Select(a => a.Key).Should().BeEquivalentTo(_additions.Select(a => a.Key));
-            diff.Modified.Select(a => a.Key).Should().BeEquivalentTo(_modifications.Select(a => a.Key));
-            diff.Deleted.Select(a => a.Key).Should().BeEquivalentTo(_deletions);
+            diff.Added.Select(a => a.Key).ToList().Should().BeEquivalentTo(_additions.Select(a => a.Key).ToList());
+            diff.Modified.Select(a => a.Key).ToList().Should().BeEquivalentTo(_modifications.Select(a => a.Key).ToList());
+            diff.Deleted.Select(a => a.Key).ToList().Should().BeEquivalentTo(_deletions);
         }
     }
 
@@ -100,9 +100,9 @@ namespace Appy.GitDb.Tests
 
         void testDiff(Diff diff)
         {
-            diff.Added.Should().BeEmpty();
-            diff.Modified.Should().BeEmpty();
-            diff.Deleted.Should().BeEmpty();
+            diff.Added.ToList().Should().BeEmpty();
+            diff.Modified.ToList().Should().BeEmpty();
+            diff.Deleted.ToList().Should().BeEmpty();
         }
     }
 

@@ -59,7 +59,7 @@ namespace Appy.GitDb.Tests
 
     public class GettingATypedValueForAKeyWithASlash : WithRepo
     {
-        const string Key = "key\\test.json";
+        const string Key = "key/test.json";
         readonly TestClass _value = new TestClass("value");
         TestClass _result;
         protected override async Task Because()
