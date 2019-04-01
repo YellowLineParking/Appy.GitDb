@@ -1,6 +1,6 @@
 ﻿$script:config = "Release"
 
-task Clean{
+task Clean {
 	Clean-Folder $artifactsPath
 	Clean-Folder TestResults
 	Get-ProjectsForTask "Clean" | ForEach-Object {
@@ -14,28 +14,17 @@ task Compile {
 	Get-ProjectsForTask "Compile" | ForEach-Object {
 		Compile-Project $_.Name
 	}
-
-	Get-ProjectsForTask "Compile" | 
-		Where { $_.Type -eq "EmbeddedWebJob" } |
-		ForEach-Object {
-			Move-WebJob $_.Name $_.Config["Target"]  $_.Config["RunMode"]
-		}
 }
 
-task Test{
-	Get-ProjectsForTask "Test" | 
-		Where { $_.Type -eq "VsTest"} |
-		ForEach-Object {
-			Execute-VsTest $_.Name
-		}
-
+task Test {	
 	Get-ProjectsForTask "Test" | 
 		Where { $_.Type -eq "XUnit"} |
 		ForEach-Object {
 			Execute-XUnit $_.Name
 		}
 }
-task Pack{
+
+task Pack {
 	Get-ProjectsForTask "Pack" | ForEach-Object {
 		if($_.Type -eq "Package"){
 			Pack-Project $_.Name			
@@ -45,21 +34,21 @@ task Pack{
 	}
 }
 
-task Push{
+task Push {
 	Get-ProjectsForTask "Push" | 
-		Where { $_.Type -eq "Package"} |
-		ForEach-Object{ 
+		Where { $_.Type -eq "Package" -Or $_.Type -eq "AppPackage"} |
+		ForEach-Object { 
 			Push-Package $_.Name $env:ylp_nugetPackageSource $env:ylp_nugetPackageSourceApiKey "409"
 		}
 
 	Get-ProjectsForTask "Push" | 
 		Where { $_.Type -ne "Package"} |
-		ForEach-Object{ 
+		ForEach-Object { 
 			Push-Package $_.Name $env:ylp_octopusDeployPackageSource $env:ylp_octopusDeployApiKey "409"
 		}
 }
 
-task Release{
+task Release {
 	Get-ProjectsForTask "Release" | ForEach-Object {
 		Octo-CreateRelease $_.Name
 	}

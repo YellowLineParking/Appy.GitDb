@@ -9,22 +9,7 @@
 # Valid project types and their process:
 #	App => Any Windows, Web or Console app | Process: Clean, Compile, Pack, Push, Release, Deploy
 #	Package => NuGet package | Process: Clean, Compile, Pack, Push
-#	VsTest => Project with Ms Tests | Process: Clean, Compile, Test
 #	Xunit => Project with Xunit Tests | Process: Clean, Compile, Test
-#   StandaloneWebJob => Project with an Azure Webjob that is deployed independently | Process: Clean, Compile, Pack, Push, Release, Deploy
-#		configuration sample:
-#			<projectName>:
-#				Type: StandaloneWebJob
-#				Config: 
-#					RunMode: <continuous | triggered>
-#   Embedded => Project with an Azure Webjob that is deployed in another project in the solution | Process: Clean, Compile
-#		Configuration sample:
-#			<projectName>:
-#				Type: EmbeddedWebJob
-#				Config: 
-#					Target: <project name to embed into>
-#					RunMode: <continuous | triggered>
-
 Appy.GitDb.Benchmark:
 	Type: App
 	Exclude: "pack, push, release, deploy"
@@ -38,3 +23,5 @@ Appy.GitDb.Tests:
 	Type: Xunit
 Appy.GitDb.Watcher:
 	Type: Package
+Appy.GitDb.NetCore.Server:
+	Type: App, AppPackage

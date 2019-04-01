@@ -1,12 +1,23 @@
-
-# Appy.GitDb
-
-<a href="https://ci.appveyor.com/project/yellowlineparking/ylp-gitdb">
-  <img src="https://ci.appveyor.com/api/projects/status/github/YellowLineParking/Appy.GitDb?branch=master&svg=true"  />
-</a>
-
+#  Appy.GitDb
 
 Appy.GitDb is a set of packages and applications to use Git as a NoSql database
+
+## Continuous Integration
+
+| Name      | Operating System | Status |
+| :---      | :---             | :---   |
+| AppVeyor  | Windows          | [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/github/YellowLineParking/Appy.GitDb?branch=master&svg=true)](https://ci.appveyor.com/project/YellowLineParking/ylp-gitdb) |
+
+
+## NuGet Packages
+
+| Name  | Framework | NuGet |
+| :---  | :---  | :---
+| ![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Local](https://www.nuget.org/packages/Appy.GitDb.Local/) | net461/netstandard2.0 | [![Appy.GitDb.Local](https://img.shields.io/nuget/v/Appy.GitDb.Local.svg)](https://www.nuget.org/packages/Appy.GitDb.Local/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Remote](https://www.nuget.org/packages/Appy.GitDb.Remote/) | net461/netstandard2.0 | [![Appy.GitDb.Remote](https://img.shields.io/nuget/v/Appy.GitDb.Remote.svg)](https://www.nuget.org/packages/Appy.GitDb.Remote/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Watcher](https://www.nuget.org/packages/Appy.GitDb.Watcher/) | net461/netstandard2.0 | [![Appy.GitDb.Watcher](https://img.shields.io/nuget/v/Appy.GitDb.Watcher.svg)](https://www.nuget.org/packages/Appy.GitDb.Watcher/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Server](https://www.nuget.org/packages/Appy.GitDb.Server/) | net461/MVC5 | [![Appy.GitDb.Server](https://img.shields.io/nuget/v/Appy.GitDb.Server.svg)](https://www.nuget.org/packages/Appy.GitDb.Server/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.NetCore](https://www.nuget.org/packages/Appy.GitDb.NetCore.Server/) | netcoreapp2.2 | [![Appy.GitDb.NetCore](https://img.shields.io/nuget/v/Appy.GitDb.NetCore.svg)](https://www.nuget.org/packages/Appy.GitDb.NetCore.Server/) |
 
 ## Getting Started
 
