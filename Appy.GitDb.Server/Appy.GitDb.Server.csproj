@@ -20,10 +20,7 @@
     <PackageReference Include="Autofac.Owin" Version="$(AutofacOwinPackageVersion)" />
     <PackageReference Include="Autofac.WebApi2" Version="$(AutofacOwinPackageVersion)" />
     <PackageReference Include="Autofac.WebApi2.Owin" Version="$(AutofacWebApi2OwinPackageVersion)" />
-    <PackageReference Include="FSharp.Core" Version="$(FSharpCorePackageVersion)" />
-    <PackageReference Include="Invoke-Build" Version="$(InvokeBuildPackageVersion)">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="FSharp.Core" Version="$(FSharpCorePackageVersion)" />    
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="$(MicrosoftAspNetWebApiPackageVersion)" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="$(MicrosoftAspNetWebApiPackageVersion)" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Owin" Version="$(MicrosoftAspNetWebApiPackageVersion)" />
@@ -34,15 +31,11 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
     <PackageReference Include="NLog" Version="$(NLogPackageVersion)" />
     <PackageReference Include="NLog.Config" Version="$(NLogPackageVersion)" />
-    <PackageReference Include="NLog.Schema" Version="$(NLogPackageVersion)" />
-    <PackageReference Include="OctopusTools" Version="$(OctopusToolsPackageVersion)">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="NLog.Schema" Version="$(NLogPackageVersion)" />  
     <PackageReference Include="Owin" Version="$(OwinPackageVersion)" />
     <PackageReference Include="Owin.Compression" Version="$(OwinCompressionPackageVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTuplePackageVersion)" />
     <PackageReference Include="Thinktecture.IdentityModel.Owin.BasicAuthentication" Version="$(IdentityModelOwinBasicAuthenticationPackageVersion)" />
-    <PackageReference Include="YamlDotNet" Version="$(YamlDotNetPackageVersion)" />
   </ItemGroup>
   
   <ItemGroup>

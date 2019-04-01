@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Appy.GitDb.NetCore.Server.Auth
 {
-    internal class Authentication
+    public class Authentication
     {
         readonly IEnumerable<User> _users;
 

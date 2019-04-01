@@ -24,7 +24,7 @@ using Microsoft.Owin.Testing;
 
 #if NETCORE
 using Appy.GitDb.NetCore.Server.Auth;
-using Appy.GitDb.NetCore.Server.Settings;
+using Appy.GitDb.NetCore.Server.GitDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -120,12 +120,12 @@ namespace Appy.GitDb.Tests.Utils
         TestServer _server;
         HttpClient _client;
 
-        protected static readonly GitDbUserSetting Admin = new GitDbUserSetting { UserName = "admin", Password = "admin", Roles = new List<string> { "admin", "read", "write" } };
-        protected static readonly GitDbUserSetting ReadOnly = new GitDbUserSetting { UserName = "readonly", Password = "readonly", Roles = new List<string> { "read" } };
-        protected static readonly GitDbUserSetting WriteOnly = new GitDbUserSetting { UserName = "writeonly", Password = "writeonly", Roles = new List<string> { "write" } };
-        protected static readonly GitDbUserSetting ReadWrite = new GitDbUserSetting { UserName = "readwrite", Password = "readwrite", Roles = new List<string> { "read", "write" } };
-        protected static readonly GitDbUserSetting None = new GitDbUserSetting { UserName = "", Password = "", Roles = new List<string>() };
-        readonly List<GitDbUserSetting> _users = new List<GitDbUserSetting> { Admin, ReadOnly, WriteOnly, ReadWrite};
+        protected static readonly GitApiUserSetting Admin = new GitApiUserSetting { UserName = "admin", Password = "admin", Roles = new List<string> { "admin", "read", "write" } };
+        protected static readonly GitApiUserSetting ReadOnly = new GitApiUserSetting { UserName = "readonly", Password = "readonly", Roles = new List<string> { "read" } };
+        protected static readonly GitApiUserSetting WriteOnly = new GitApiUserSetting { UserName = "writeonly", Password = "writeonly", Roles = new List<string> { "write" } };
+        protected static readonly GitApiUserSetting ReadWrite = new GitApiUserSetting { UserName = "readwrite", Password = "readwrite", Roles = new List<string> { "read", "write" } };
+        protected static readonly GitApiUserSetting None = new GitApiUserSetting { UserName = "", Password = "", Roles = new List<string>() };
+        readonly List<GitApiUserSetting> _users = new List<GitApiUserSetting> { Admin, ReadOnly, WriteOnly, ReadWrite};
 
         protected virtual Task Because() => Task.CompletedTask;
 
@@ -139,11 +139,11 @@ namespace Appy.GitDb.Tests.Utils
             Directory.Delete(directory);
         }
 
-        protected void WithUser(GitDbUserSetting user) =>
+        protected void WithUser(GitApiUserSetting user) =>
             _client.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{user.UserName}:{user.Password}")));
 
-        static IEnumerable<KeyValuePair<string, string>> toDictionary(object o, string settingName) =>
+        static Dictionary<string, string> toDictionary(object o, string settingName) =>
             addPropsToDic(JObject.FromObject(o), new Dictionary<string, string>(), settingName);
 
         static Dictionary<string, string> addPropsToDic(JObject jo, Dictionary<string, string> dic, string prefix)
@@ -178,15 +178,21 @@ namespace Appy.GitDb.Tests.Utils
 
         public async Task InitializeAsync()
         {
-            // api json options
-            var settings = new GitDbSettings
+            var dbSettings = new GitDbSettings
             {
                 GitHomePath = LocalPath,
-                Users = _users,
                 TransactionsTimeout = TransactionTimeout,
                 Remote = new GitDbRemoteSettings()
-            };              
-            var settingsDic = toDictionary(settings, "GitDb");
+            };    
+            var authSettings = new GitApiAuthSettings
+            {             
+                Users = _users             
+            };    
+            
+            var dbSettingsDic = toDictionary(dbSettings, "GitDb");
+            var authSettingsDic = toDictionary(authSettings , "GitApiAuth");
+            var dics =  new List<Dictionary<string, string>> { dbSettingsDic, authSettingsDic };
+            var settingsDic = dics.SelectMany(dict => dict).ToDictionary(pair => pair.Key, pair => pair.Value);
 
             // host builder
             var hostBuilder = new WebHostBuilder()            

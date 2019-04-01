@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Appy.GitDb.NetCore.Server.Logging
 {
-    public class LoggingMiddleware
+    public class AppyLoggingMiddleware
     {
         public static Logger Logger;
         readonly RequestDelegate _next;
 
-        public LoggingMiddleware(RequestDelegate next)
+        public AppyLoggingMiddleware(RequestDelegate next)
         {
             _next = next;
         }

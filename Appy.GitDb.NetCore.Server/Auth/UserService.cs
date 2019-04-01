@@ -1,25 +1,25 @@
-﻿using Appy.GitDb.NetCore.Server.Settings;
+﻿using Appy.GitDb.NetCore.Server.GitDb;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 
 namespace Appy.GitDb.NetCore.Server.Auth
 {
     public interface IUserService
     {
-        Task<User> Authenticate(string username, string password);        
+        Task<User> Authenticate(string username, string password);
     }
 
     public class UserService : IUserService
     {
         readonly List<User> _users;
 
-        public UserService(IOptions<GitDbSettings> options) =>
+        public UserService(IOptions<GitApiAuthSettings> options) =>
             _users = buildUsers(options.Value);
 
-        static List<User> buildUsers(GitDbSettings settings) =>
+        static List<User> buildUsers(GitApiAuthSettings settings) =>
             settings.Users.Select(setting => new User()
             {
                 UserName = setting.UserName,
@@ -41,6 +41,6 @@ namespace Appy.GitDb.NetCore.Server.Auth
 
             var copyUser = new User { UserName = user.UserName, Roles = user.Roles.Select(x => x) };
             return Task.FromResult(copyUser);
-        }        
+        }
     }
 }

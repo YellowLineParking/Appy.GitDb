@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Appy.GitDb.Core\Appy.GitDb.Core.csproj" />
+    <ProjectReference Include="..\Appy.GitDb.Core\Appy.GitDb.Core.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\Appy.GitDb.Local\Appy.GitDb.Local.csproj" />
   </ItemGroup>
   
