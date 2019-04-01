@@ -1,10 +1,23 @@
-<a href="https://ci.appveyor.com/project/yellowlineparking/ylp-gitdb">
-  <img src="https://ci.appveyor.com/api/projects/status/github/YellowLineParking/Appy.GitDb?branch=master&svg=true" width="200" />
-</a>
-
-# Appy.GitDb
+#  Appy.GitDb
 
 Appy.GitDb is a set of packages and applications to use Git as a NoSql database
+
+## Continuous Integration
+
+| Name      | Operating System | Status |
+| :---      | :---             | :---   |
+| AppVeyor  | Windows          | [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/github/YellowLineParking/Appy.GitDb?branch=master&svg=true)](https://ci.appveyor.com/project/YellowLineParking/ylp-gitdb) |
+
+
+## NuGet Packages
+
+| Name  | Framework | NuGet |
+| :---  | :---  | :---
+| ![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Local](https://www.nuget.org/packages/Appy.GitDb.Local/) | net461/netstandard2.0 | [![Appy.GitDb.Local](https://img.shields.io/nuget/v/Appy.GitDb.Local.svg)](https://www.nuget.org/packages/Appy.GitDb.Local/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Remote](https://www.nuget.org/packages/Appy.GitDb.Remote/) | net461/netstandard2.0 | [![Appy.GitDb.Remote](https://img.shields.io/nuget/v/Appy.GitDb.Remote.svg)](https://www.nuget.org/packages/Appy.GitDb.Remote/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Watcher](https://www.nuget.org/packages/Appy.GitDb.Watcher/) | net461/netstandard2.0 | [![Appy.GitDb.Watcher](https://img.shields.io/nuget/v/Appy.GitDb.Watcher.svg)](https://www.nuget.org/packages/Appy.GitDb.Watcher/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.Server](https://www.nuget.org/packages/Appy.GitDb.Server/) | net461/MVC5 | [![Appy.GitDb.Server](https://img.shields.io/nuget/v/Appy.GitDb.Server.svg)](https://www.nuget.org/packages/Appy.GitDb.Server/) |
+![Appy.GitDb Icon](https://raw.githubusercontent.com/YellowLineParking/Appy.GitDb/master/assets/icon-16x16.png) [Appy.GitDb.NetCore](https://www.nuget.org/packages/Appy.GitDb.NetCore.Server/) | netcoreapp2.2 | [![Appy.GitDb.NetCore](https://img.shields.io/nuget/v/Appy.GitDb.NetCore.svg)](https://www.nuget.org/packages/Appy.GitDb.NetCore.Server/) |
 
 ## Getting Started
 
@@ -17,13 +30,22 @@ GitDb can be accessd in two different modes:
 
 To start using GitDb locally, first install the `Appy.GitDb.Local` NuGet package:
 
-```
+- Package Manager Console
+```csharp
 Install-Package Appy.GitDb.Local
 ```
 
+or 
+
+- .NET CLI Console
+```
+dotnet add package Appy.GitDb.Local
+```
+
+
 Now you can use a local repository as a Git database:
 
-```
+```csharp
 // 1. Instantiate a new instance of the local git database
 IGitDb db = new LocalGitDb(@"c:\path\to\a\repository");
 
@@ -40,8 +62,7 @@ var theObject = await db.Get<SomeClass>("master", "key")
 ```
 
 ### Remote mode
-
-In order to use Git as a remote database, you need to install the `Appy.GitDb.Server` project on a server.
+In order to use Git as a remote database, you can use one of the servers projects `Appy.GitDb.Server` (MVC5) or `Appy.GitDb.NetCore.Server` (NETCore) as base or just the remote package on your own code.
 
 Once the server is installed, you can use the `Appy.GitDb.Remote` package to talk to the server:
 
@@ -49,7 +70,7 @@ Once the server is installed, you can use the `Appy.GitDb.Remote` package to tal
 Install-Package Appy.GitDb.Remote
 ```
 
-```
+```csharp
 // 1. Instantiate a new instance of the remote git database
 IGitDb db = new RemoteGitDb("username", "password", "http://url-of-git-database.com");
 
@@ -68,7 +89,7 @@ var theObject = db.Get<SomeClass>("master", "key")
 
 Both the local as well as the remote git db implement the same interface, so they're easily interchangeable. The interface is defined as follows:
 
-```
+```csharp
 public interface IGitDb : IDisposable
 {
     Task<string> Get(string branch, string key);
@@ -99,7 +120,7 @@ public interface IGitDb : IDisposable
 
 In order to add, update or remove multiple files in a single commit, you need to create a transaction. You can do so by creating a transaction from the database:
 
-```
+```csharp
 IGitDb db = // new LocalGitDb(...) or new RemoteGitDb(...)
 
 using(var transaction = await db.CreateTransaction("master"))
@@ -118,7 +139,7 @@ using(var transaction = await db.CreateTransaction("master"))
 
 The transaction returned from the `CreateTransaction`-method implements the following interface (in local as well as in remote mode):
 
-```
+```csharp
 public interface ITransaction : IDisposable
 {
     Task Add(Document document);
@@ -138,7 +159,7 @@ public interface ITransaction : IDisposable
 ## Branch management
 Currently, GitDb supports the following methods for managing branches:
 
-```
+```csharp
 // Creates a tag at the specified reference (commit, branch or other tag)
 Task Tag(Reference reference);
 
@@ -177,7 +198,7 @@ Install-Package Appy.GitDb.Watcher
 
 Now, we can set up the watcher to check for changes:
 
-```
+```csharp
 new Watcher(
   path: @"path\to\local\repository",
   interval: intervalToPollForChangesInMilliseconds,
@@ -188,7 +209,7 @@ new Watcher(
 ```
 The three methods will be called whenever the watcher detects any changes in the repository. They will be provided with the following arguments:
 
-```
+```csharp
 public class BranchAdded
 {
   // Newly created branch
@@ -252,3 +273,7 @@ build.bat dev
 This will execute the tasks `clean`, `compile`, `test`, `pack`
 You can execute any of these tasks separately by running `build <task>`
 
+## Contribute
+It would be awesome if you would like to contribute code or help with bugs. Just follow the guidelines [CONTRIBUTING](https://github.com/YellowLineParking/Appy.GitDb/blob/master/CONTRIBUTING.md).
+
+  

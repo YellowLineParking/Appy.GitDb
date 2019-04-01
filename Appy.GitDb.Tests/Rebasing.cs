@@ -42,7 +42,7 @@ namespace Appy.GitDb.Tests
         {
             foreach (var i in Enumerable.Range(_index, 5))
             {
-                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file/key {i}", Value = i.ToString() }, Author);
                 _removedFiles.Remove(i);
                 _addedFiles.Add(i);
             }
@@ -54,7 +54,7 @@ namespace Appy.GitDb.Tests
         {
             foreach (var i in Enumerable.Range(start, count))
             {
-                await Subject.Delete(branch, $"file\\key {i}", $"Deleted {i}({branch})", Author);
+                await Subject.Delete(branch, $"file/key {i}", $"Deleted {i}({branch})", Author);
                 _addedFiles.Remove(i);
                 _removedFiles.Add(i);
             }
@@ -62,19 +62,19 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void RebaseShouldSuccedWithValidInfo() =>
-            _rebaseResult.ShouldBeEquivalentTo(RebaseInfo.Succeeded("test", "master", Repo.Branches["test"].Tip.Sha));
+            _rebaseResult.Should().BeEquivalentTo(RebaseInfo.Succeeded("test", "master", Repo.Branches["test"].Tip.Sha));
 
         [Fact]
         public async Task AddsTheCorrectFilesToTheBranch() =>
             (await Subject.GetFiles("test", "file"))
-            .Select(int.Parse)
+            .Select(int.Parse).ToList()
             .Should()
             .Contain(_addedFiles);
 
         [Fact]
         public async Task RemovesTheCorrectFilesFromTheBranch() =>
             (await Subject.GetFiles("test", "file"))
-            .Select(int.Parse)
+            .Select(int.Parse).ToList()
             .Should()
             .NotContain(_removedFiles);
     }
@@ -89,7 +89,7 @@ namespace Appy.GitDb.Tests
         protected override async Task Because()
         {
             foreach (var i in Enumerable.Range(0, 5))
-                await Subject.Save("master", $"Added {i} (master)", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
+                await Subject.Save("master", $"Added {i} (master)", new Document { Key = $"file/key {i}", Value = i.ToString() }, Author);
 
             _masterCommit = Repo.Branches["master"].Tip.Sha;
 
@@ -100,7 +100,7 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void RebaseShouldSuccedWithValidInfo() =>
-            _rebaseResult.ShouldBeEquivalentTo(RebaseInfo.Succeeded("test", "master", string.Empty));
+            _rebaseResult.Should().BeEquivalentTo(RebaseInfo.Succeeded("test", "master", string.Empty));
 
         [Fact]
         public void DoesNotCreateACommitOnSourceBranch() =>
@@ -126,7 +126,7 @@ namespace Appy.GitDb.Tests
         async Task addItem(string branch, bool changeValuesForKeys = false)
         {
             foreach (var i in Enumerable.Range(1, 2))
-                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file/key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
         }
 
         static string MapToDocumentValue(int value, bool multiple = false) =>
@@ -152,13 +152,13 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _rebaseResult.ShouldBeEquivalentTo(new RebaseInfo
+            _rebaseResult.Should().BeEquivalentTo(new RebaseInfo
             {
                 Message = "Could not rebase test onto master because of conflicts. Please merge manually",
                 SourceBranch = "test",
                 TargetBranch = "master",
                 Status = RebaseResult.Conflicts,
-                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Change, Path = $"file\\key {i}" }).ToList()
+                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Change, Path = $"file/key {i}" }).ToList()
             });
         }
     }
@@ -184,13 +184,13 @@ namespace Appy.GitDb.Tests
         async Task addItems(string branch, bool changeValuesForKeys = false)
         {
             foreach (var i in Enumerable.Range(1, 2))
-                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file/key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
         }
 
         async Task removeItems(string branch, int start, int count)
         {
             foreach (var i in Enumerable.Range(start, count))
-                await Subject.Delete(branch, $"file\\key {i}", $"Deleted {i}({branch})", Author);
+                await Subject.Delete(branch, $"file/key {i}", $"Deleted {i}({branch})", Author);
         }
 
         static string MapToDocumentValue(int value, bool multiple = false) => (multiple ? value * 2 : value).ToString();
@@ -210,13 +210,13 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _rebaseResult.ShouldBeEquivalentTo(new RebaseInfo
+            _rebaseResult.Should().BeEquivalentTo(new RebaseInfo
             {
                 Message = "Could not rebase test onto master because of conflicts. Please merge manually",
                 SourceBranch = "test",
                 TargetBranch = "master",
                 Status = RebaseResult.Conflicts,
-                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Remove, Path = $"file\\key {i}" }).ToList()
+                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Remove, Path = $"file/key {i}" }).ToList()
             });
         }
     }

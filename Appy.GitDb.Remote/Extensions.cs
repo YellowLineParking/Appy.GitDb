@@ -18,10 +18,10 @@ namespace Appy.GitDb.Remote
 
         public static async Task<T> GetAsync<T>(this HttpClient client, string url) where T : class
         {
-                var response = await client.GetAsync(url).WhenSuccessful();
-                var result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<T>(result);
-            }
+            var response = await client.GetAsync(url).WhenSuccessful();
+            var result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<T>(result);
+        }
 
         public static Task<HttpResponseMessage> PostAsync<T>(this HttpClient client, string url, T item) =>
             client.PostAsync(url, new StringContent(JsonConvert.SerializeObject(item), Encoding.UTF8, "application/json"));
@@ -37,7 +37,7 @@ namespace Appy.GitDb.Remote
             var response = await task;
             if (response.StatusCode == HttpStatusCode.BadRequest)
                 throw new ArgumentException($"The request was not valid: {response.StatusCode}:{response.ReasonPhrase}:{await response.Content.ReadAsStringAsync()}");
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
                 throw new UnauthorizedAccessException($"The request was not authorized:{response.StatusCode}:{response.ReasonPhrase}:{await response.Content.ReadAsStringAsync()}");
             if(response.StatusCode == HttpStatusCode.InternalServerError)
                 throw new Exception($"An unexpected error occurred:{response.StatusCode}:{await response.Content.ReadAsStringAsync()}");

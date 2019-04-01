@@ -57,7 +57,7 @@ namespace Appy.GitDb.Tests.Watcher
         {
             using (var t = await GitDb.CreateTransaction("master"))
             {
-                await t.Add(new Document {Key = "subdir\\key", Value = "value"});
+                await t.Add(new Document {Key = "subdir/key", Value = "value"});
                 await t.Delete("key");
                 await t.Commit("message", Author);
             }
@@ -66,7 +66,7 @@ namespace Appy.GitDb.Tests.Watcher
         [Fact]
         public void RaisesBranchChangedEvent() =>
             BranchChanged.Should().Contain(args => args.Branch.Name == "master" &&
-                                                    args.Renamed.Any(item => item.Key == "subdir\\key" &&
+                                                    args.Renamed.Any(item => item.Key == "subdir/key" &&
                                                                              item.OldKey == "key" && 
                                                                              item.GetValue() == "value" &&
                                                                              item.GetOldValue() == "value"));

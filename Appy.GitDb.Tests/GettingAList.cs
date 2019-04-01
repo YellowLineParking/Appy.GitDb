@@ -12,9 +12,9 @@ namespace Appy.GitDb.Tests
     public class GettingAListOfFiles : WithRepo
     {
         readonly Dictionary<string, string> _rootDocuments = Enumerable.Range(0, 3)
-                                                                       .ToDictionary(i => $@"{Directory}\{i}_key", i => i + "_value");
+                                                                       .ToDictionary(i => $@"{Directory}/{i}_key", i => i + "_value");
         readonly Dictionary<string, string> _subDirectoryDocuments = Enumerable.Range(0, 3)
-                                                                               .ToDictionary(i => $@"{Directory}\subdirectory\{i}_key", i => i + "sub_value");
+                                                                               .ToDictionary(i => $@"{Directory}/subdirectory/{i}_key", i => i + "sub_value");
         IReadOnlyCollection<string> _result;
         const string Directory = "directory";
         protected override async Task Because()
@@ -36,9 +36,9 @@ namespace Appy.GitDb.Tests
     public class GettingAListOfTypedFiles : WithRepo
     {
         readonly Dictionary<string, TestClass> _rootDocuments = Enumerable.Range(0, 3)
-                                                                          .ToDictionary(i => $@"{Directory}\{i}_key", i => new TestClass(i + "_value"));
+                                                                          .ToDictionary(i => $"{Directory}/{i}_key", i => new TestClass(i + "_value"));
         readonly Dictionary<string, TestClass> _subDirectoryDocuments = Enumerable.Range(0, 3)
-                                                                                  .ToDictionary(i => $@"{Directory}\subdirectory\{i}_key", i => new TestClass(i + "sub_value"));
+                                                                                  .ToDictionary(i => $"{Directory}/subdirectory/{i}_key", i => new TestClass(i + "sub_value"));
         IReadOnlyCollection<TestClass> _result;
         const string Directory = "subdirectory";
         protected override async Task Because()
@@ -56,14 +56,20 @@ namespace Appy.GitDb.Tests
         [Fact]
         public void DoesNotRetrieveFilesRecursively() =>
             _result.Select(r => r.Value).Should().NotContain(_subDirectoryDocuments.Values.Select(d => d.Value));
+
+        [Fact]
+        public void CloneRepoToNormal()
+        {
+            MoveToNormalRepo(@"C:\testrepo");
+        }
     }
 
     public class GettingAListOfPagedFiles : WithRepo
     {
         readonly Dictionary<string, string> _rootDocuments = Enumerable.Range(0, 50)
-            .ToDictionary(i => $@"{Directory}\{i}_key", i => i + "_value");
+            .ToDictionary(i => $@"{Directory}/{i}_key", i => i + "_value");
         readonly Dictionary<string, string> _subDirectoryDocuments = Enumerable.Range(0, 5)
-            .ToDictionary(i => $@"{Directory}\subdirectory\{i}_key", i => i + "sub_value");
+            .ToDictionary(i => $@"{Directory}/subdirectory/{i}_key", i => i + "sub_value");
         List<string> _result;
         const string Directory = "directory";
         protected override async Task Because()

@@ -58,7 +58,7 @@ namespace Appy.GitDb.Tests
         {
             foreach (var i in Enumerable.Range(_index, 5))
             {
-                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file/key {i}", Value = i.ToString() }, Author);
                 _removedFiles.Remove(i);
                 _addedFiles.Add(i);
             }
@@ -69,7 +69,7 @@ namespace Appy.GitDb.Tests
         {
             foreach (var i in Enumerable.Range(start, count))
             {
-                await Subject.Delete(branch, $"file\\key {i}", $"Deleted {i}({branch})", Author);
+                await Subject.Delete(branch, $"file/key {i}", $"Deleted {i}({branch})", Author);
                 _addedFiles.Remove(i);
                 _removedFiles.Add(i);
             }
@@ -77,11 +77,11 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void FirstMergesShouldSuccedWithValidInfo() => 
-            _firstMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test2", "master", _commitBeforeSecondMerge));
+            _firstMergeResult.Should().BeEquivalentTo(MergeInfo.Succeeded("test2", "master", _commitBeforeSecondMerge));
 
         [Fact]
         public void SecondMergeShouldSuccedWithValidInfo() => 
-            _secondMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test", "master", _commitAfterSecondMerge));
+            _secondMergeResult.Should().BeEquivalentTo(MergeInfo.Succeeded("test", "master", _commitAfterSecondMerge));
 
         [Fact]
         public async Task AddsTheCorrectFilesToMaster() =>
@@ -115,7 +115,7 @@ namespace Appy.GitDb.Tests
         protected override async Task Because()
         {
             foreach (var i in Enumerable.Range(0, 5))
-                await Subject.Save("master", $"Added {i} (master)", new Document { Key = $"file\\key {i}", Value = i.ToString() }, Author);
+                await Subject.Save("master", $"Added {i} (master)", new Document { Key = $"file/key {i}", Value = i.ToString() }, Author);
 
             _masterCommit = Repo.Branches["master"].Tip.Sha;
 
@@ -126,7 +126,7 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void MergeShouldSuccedWithValidInfo() =>
-            _mergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test", "master", string.Empty));
+            _mergeResult.Should().BeEquivalentTo(MergeInfo.Succeeded("test", "master", string.Empty));
 
         [Fact]
         public void DoesNotCreateACommitOnMaster() =>
@@ -155,7 +155,7 @@ namespace Appy.GitDb.Tests
         async Task addItem(string branch, bool changeValuesForKeys = false)
         {
             foreach (var i in Enumerable.Range(1, 2))
-                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file/key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
         }
 
         static string MapToDocumentValue(int value, bool multiple = false) =>
@@ -179,13 +179,13 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _mergeResult.ShouldBeEquivalentTo(new MergeInfo
+            _mergeResult.Should().BeEquivalentTo(new MergeInfo
             {
                 Message = "Could not merge test into master because of conflicts. Please merge manually",
                 SourceBranch = "test",
                 TargetBranch = "master",
                 Status = MergeResult.Conflicts,
-                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Change, Path = $"file\\key {i}" }).ToList()
+                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Change, Path = $"file/key {i}" }).ToList()
             });
         }
     }
@@ -210,13 +210,13 @@ namespace Appy.GitDb.Tests
         async Task addItems(string branch, bool changeValuesForKeys = false)
         {
             foreach (var i in Enumerable.Range(1, 2))
-                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file\\key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
+                await Subject.Save(branch, $"Added {i} ({branch})", new Document { Key = $"file/key {i}", Value = MapToDocumentValue(i, changeValuesForKeys) }, Author);
         }
 
         async Task removeItems(string branch, int start, int count)
         {
             foreach (var i in Enumerable.Range(start, count))
-                await Subject.Delete(branch, $"file\\key {i}", $"Deleted {i}({branch})", Author);
+                await Subject.Delete(branch, $"file/key {i}", $"Deleted {i}({branch})", Author);
         }
 
         static string MapToDocumentValue(int value, bool multiple = false) => (multiple ? value * 2 : value).ToString();
@@ -236,13 +236,13 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _mergeResult.ShouldBeEquivalentTo(new MergeInfo
+            _mergeResult.Should().BeEquivalentTo(new MergeInfo
             {
                 Message = "Could not merge test into master because of conflicts. Please merge manually",
                 SourceBranch = "test",
                 TargetBranch = "master",
                 Status = MergeResult.Conflicts,
-                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Remove, Path = $"file\\key {i}" }).ToList()
+                Conflicts = Enumerable.Range(1, 2).Select(i => new ConflictInfo { Type = ConflictType.Remove, Path = $"file/key {i}" }).ToList()
             });
         }
     }
