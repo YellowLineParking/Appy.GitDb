@@ -10,20 +10,26 @@ namespace Appy.GitDb.Local
     public class Transaction : ITransaction
     {
         readonly Func<Document, Task> _add;
+        readonly Func<IEnumerable<Document>, Task> _addMany;
         readonly Func<string, Author, Task<string>> _commit;
         readonly Func<Task> _abort;
         readonly Func<string, Task> _delete;
+        readonly Func<IEnumerable<string>, Task> _deleteMany;
         bool _isOpen;
 
         public Transaction(Func<Document, Task> add,
+                           Func<IEnumerable<Document>, Task> addMany,
                            Func<string, Author, Task<string>> commit,
                            Func<Task> abort,
-                           Func<string, Task> delete)
+                           Func<string, Task> delete,
+                           Func<IEnumerable<string>, Task> deleteMany)
         {
             _add = add;
+            _addMany = addMany;
             _commit = commit;
             _abort = abort;
             _delete = delete;
+            _deleteMany = deleteMany;
             _isOpen = true;
         }
 
@@ -44,13 +50,13 @@ namespace Appy.GitDb.Local
             executeIfOpen(() => _delete(key));
 
         public Task DeleteMany(IEnumerable<string> keys) =>
-            executeIfOpen(() => Task.WhenAll(keys.Select(Delete)));
+            executeIfOpen(() => _deleteMany(keys));
 
         public Task AddMany<T>(IEnumerable<Document<T>> documents) =>
-            executeIfOpen(() => Task.WhenAll(documents.Select(Add)));
+            executeIfOpen(() => _addMany(documents.Select(Document.From)));
 
         public Task AddMany(IEnumerable<Document> documents) =>
-            executeIfOpen(() => Task.WhenAll(documents.Select(Add)));
+            executeIfOpen(() => _addMany(documents));
 
         public async Task<string> Commit(string message, Author author)
         {

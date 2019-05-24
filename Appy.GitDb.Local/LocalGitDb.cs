@@ -468,6 +468,7 @@ namespace Appy.GitDb.Local
 
             void EnsureTransactionInProgress()
             {
+                
                 if (!_branchesWithTransaction.ContainsKey(branch))
                 {
                     var exceptionMessage = $"Transaction does not exist for branch {branch} or has timed out";
@@ -481,8 +482,26 @@ namespace Appy.GitDb.Local
                 add: document =>
                 {
                     EnsureTransactionInProgress();
-                    addBlobToTree(document.Key, addBlob(document.Value), tree);
+                    var blob = addBlob(document.Value);
+                    if(blob == null)
+                        _logger.Warn($"Found a null blob for document with key {document.Value}");
+                    addBlobToTree(document.Key, blob, tree);
                     _logger.Trace($"Added blob with key {document.Key} to transaction on {branch}");
+                    return Task.CompletedTask;
+                },
+                addMany: documents =>
+                {
+                    EnsureTransactionInProgress();
+                    var items = documents.AsParallel().Select(d => new { Document= d, Blob=  addBlob(d.Value)}).ToList();
+                    foreach (var item in items)
+                    {
+                        if (item.Blob == null)
+                            _logger.Warn($"Found a null blob for document with key {item.Document.Value}");
+                        addBlobToTree(item.Document.Key, item.Blob, tree);
+                    }
+                        
+                    
+                    _logger.Trace($"Added {items.Count} blobs to transaction on {branch}");
                     return Task.CompletedTask;
                 },
                 commit: (message, author) =>
@@ -508,6 +527,16 @@ namespace Appy.GitDb.Local
                     EnsureTransactionInProgress();
                     deleteKeyFromTree(key, tree);
                     _logger.Trace($"Removed blob with key {key} in transaction  on {branch}");
+                    return Task.CompletedTask;
+                },
+                deleteMany: keys =>
+                {
+                    var keysList = keys.ToList();
+                    EnsureTransactionInProgress();
+                    foreach (var key in keysList)
+                        deleteKeyFromTree(key, tree);
+
+                    _logger.Trace($"Removed {keysList.Count} blobs in transaction  on {branch}");
                     return Task.CompletedTask;
                 }));
         }
