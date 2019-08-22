@@ -5,7 +5,6 @@ task Clean{
 	Clean-Folder TestResults
 	Get-ProjectsForTask "Clean" | ForEach-Object {
 		Clean-Folder "$($_.Name)\bin"
-		Clean-Folder "$($_.Name)\obj"
 	}
 	New-Item $artifactsPath -Type directory -Force | Out-Null
 }
@@ -16,7 +15,7 @@ task Compile {
 	}
 
 	Get-ProjectsForTask "Compile" | 
-		Where { $_.Type -eq "EmbeddedWebJob" } |
+		Where { $_.Type -eq "EmbeddedWebJob" -or $_.Type -eq "StandaloneWebJob"} |
 		ForEach-Object {
 			Move-WebJob $_.Name $_.Config["Target"]  $_.Config["RunMode"]
 		}
@@ -34,6 +33,14 @@ task Test{
 		ForEach-Object {
 			Execute-XUnit $_.Name
 		}
+
+	Get-ProjectsForTask "Test" | 
+		Where { $_.Type -eq "VsTestAndXUnit"} |
+		ForEach-Object {
+			Execute-VsTest $_.Name
+			Execute-XUnit $_.Name
+		}
+
 }
 task Pack{
 	Get-ProjectsForTask "Pack" | ForEach-Object {
@@ -47,7 +54,7 @@ task Pack{
 
 task Push{
 	Get-ProjectsForTask "Push" | 
-		Where { $_.Type -eq "Package"} |
+		Where { $_.Type -eq "Package" -Or $_.Type -eq "AppPackage"} |
 		ForEach-Object{ 
 			Push-Package $_.Name $env:ylp_nugetPackageSource $env:ylp_nugetPackageSourceApiKey "409"
 		}
