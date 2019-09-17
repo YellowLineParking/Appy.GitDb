@@ -120,7 +120,14 @@ namespace Appy.GitDb.Remote
             JsonConvert.DeserializeObject<Diff>(await _client.GetAsync($"/diff/{reference}/{reference2}")
                        .WhenSuccessful()
                        .AsStringResponse());
-
+        
+        /// <summary>
+        /// Gets <see cref="CommitInfo"/> of each commit between two references.
+        /// References can be to a specific commit, the tip of a branch or a tagged commit.
+        /// </summary>
+        /// <param name="reference">A reference to a commit, a branch or a tag.</param>
+        /// <param name="reference2">A reference to a commit, a branch or a tag.</param>
+        /// <returns>A <see cref="List{CommitInfo}"/> of commits between the two references.</returns>
         public async Task<List<CommitInfo>> Log(string reference, string reference2) =>
             JsonConvert.DeserializeObject<List<CommitInfo>>(await _client.GetAsync($"/log/{reference}/{reference2}")
                 .WhenSuccessful()

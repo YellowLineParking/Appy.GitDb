@@ -412,6 +412,13 @@ namespace Appy.GitDb.Local
             });
         }
 
+        /// <summary>
+        /// Gets <see cref="CommitInfo"/> of each commit between two references.
+        /// References can be to a specific commit, the tip of a branch or a tagged commit.
+        /// </summary>
+        /// <param name="reference">A reference to a commit, a branch or a tag.</param>
+        /// <param name="reference2">A reference to a commit, a branch or a tag.</param>
+        /// <returns>A <see cref="List{CommitInfo}"/> of commits between the two references.</returns>
         public Task<List<CommitInfo>> Log(string reference, string reference2)
         {
             var commit = getCommitFromReference(reference);
@@ -441,6 +448,14 @@ namespace Appy.GitDb.Local
             return Task.FromResult(logs);
         }
 
+        /// <summary>
+        /// Gets the <see cref="Commit"/> object for the specified reference.
+        /// A commit reference will return the commit,
+        /// a branch reference will return the commit at the tip of the branch
+        /// and a tag reference will return the tagged commit.
+        /// </summary>
+        /// <param name="reference">A reference to a commit, a branch or a tag.</param>
+        /// <returns>The <see cref="Commit"/> that the supplied reference resolves to.</returns>
         Commit getCommitFromReference(string reference) =>
             (_repo.Lookup<Commit>(reference) ??
              _repo.Branches[reference]?.Tip) ??

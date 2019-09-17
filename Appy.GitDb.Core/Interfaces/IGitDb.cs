@@ -11,7 +11,7 @@ namespace Appy.GitDb.Core.Interfaces
     {
         Task<string> Get(string branch, string key);
         Task<T> Get<T>(string branch, string key) where T : class;
-
+        
         Task<IReadOnlyCollection<T>> GetFiles<T>(string branch, string key);
         Task<IReadOnlyCollection<string>> GetFiles(string branch, string key);
 
@@ -35,7 +35,15 @@ namespace Appy.GitDb.Core.Interfaces
         Task DeleteBranch(string branch);
 
         Task<Diff> Diff(string reference, string reference2);
-
+        
+        /// <summary>
+        /// Gets the <see cref="Commit"/> object for the specified reference.
+        /// A commit reference will return the commit,
+        /// a branch reference will return the commit at the tip of the branch
+        /// and a tag reference will return the tagged commit.
+        /// </summary>
+        /// <param name="reference">A reference to a commit, a branch or a tag.</param>
+        /// <returns>The <see cref="Commit"/> that the supplied reference resolves to.</returns>
         Task<List<CommitInfo>> Log(string reference, string reference2);
     }
 
