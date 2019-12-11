@@ -42,14 +42,15 @@ namespace Appy.GitDb.Tests.Watcher
 
     public class RemovingABranch : WithWatcher
     {
-        protected override Task Because()
+        protected override async Task Because()
         {
-            Repo.Branches.Remove("master");
-            return Task.CompletedTask;
+            Repo.Branches.Add("test", "master");
+            await Task.Delay(10);
+            Repo.Branches.Remove("test");
         }
 
         [Fact]
-        public void RaisesABranchAddedEvent() =>
-            BranchRemoved.Should().Contain(args => args.Branch.Name == "master");
+        public void RaisesABranchRemovedEvent() =>
+            BranchRemoved.Should().Contain(args => args.Branch.Name == "test");
     }
 }
