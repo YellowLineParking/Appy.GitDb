@@ -47,6 +47,19 @@ namespace Appy.GitDb.Watcher
             var currentBranches = _repo.Branches
                                        .Where(b => !b.IsRemote)
                                        .ToBranchDictionary();
+
+            // Mitigation of a bug where sometimes we find no branches. Unclear what the reason is, but we apply a retry strategy here
+            var tries = 0;
+            while (tries < 5 && (currentBranches.Count() == 0 || previousBranches.Count() - currentBranches.Count() > 5))
+            {
+                tries++;
+                await Task.Delay(_interval);
+                _logger.Warn($"Detected unusual branch count difference: Previously: {previousBranches.Count()}, now: {currentBranches.Count()}. Attempt {tries}/5");
+                currentBranches = _repo.Branches
+                                       .Where(b => !b.IsRemote)
+                                       .ToBranchDictionary();
+            }
+            
             _branches = currentBranches;
 
             await raiseEventsForDifferences(previousBranches, currentBranches);
