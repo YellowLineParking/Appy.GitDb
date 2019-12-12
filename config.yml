@@ -25,9 +25,9 @@
 #					Target: <project name to embed into>
 #					RunMode: <continuous | triggered>
 
-Appy.GitDb.Benchmark:
-	Type: App
-	Exclude: "pack, push, release, deploy"
+#Appy.GitDb.Benchmark:
+#	Type: App
+#	Exclude: "pack, push, release, deploy"
 Appy.GitDb.Local:
 	Type: Package
 Appy.GitDb.Remote:
