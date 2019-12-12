@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>    
     <NoWarn>1591</NoWarn>
-    <PlatformTarget>AnyCpu</PlatformTarget>    
-    <Description>Library to use a remote git repository as a NoSQL database through a REST API. Note: You need an installed version of the GitDb server, which can be found at the project URL.</Description>    
+    <PlatformTarget>AnyCpu</PlatformTarget>        
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <Version>0.18.0</Version>
   </PropertyGroup>
   
@@ -18,7 +18,16 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Appy.GitDb.Core\Appy.GitDb.Core.csproj" />
+    <ProjectReference Include="..\Appy.GitDb.Core\Appy.GitDb.Core.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <IncludeAssets>Appy.GitDb.Core.dll</IncludeAssets>
+    </ProjectReference>
   </ItemGroup>
+
+  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 
 </Project>
