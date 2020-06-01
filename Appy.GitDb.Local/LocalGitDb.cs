@@ -17,24 +17,39 @@ using Reference = Appy.GitDb.Core.Model.Reference;
 
 namespace Appy.GitDb.Local
 {
+    class BranchSync
+    {
+        public bool ForcePush { get; set; }
+        public string BranchName { get; set; }
+    }
     public class LocalGitDb : IGitDb
     {
         readonly int _transactionTimeout;
         readonly Logger _logger;
         readonly string _remoteUrl;
+        readonly string _remoteName;
+        readonly BranchSync[] _remoteBranchesToSync;
         readonly string _userName;
         readonly Repository _repo;
         readonly Dictionary<string, DateTime> _branchesWithTransaction = new Dictionary<string, DateTime>();
         readonly Dictionary<string, object> _branchLocks;
         readonly PushOptions _pushOptions;
 
-        public LocalGitDb(string path, string remoteUrl = null, string userName = null, string userEmail = null, string password = null, int transactionTimeout = 10)
+        public LocalGitDb(string path, string remoteName = null, string remoteUrl = null, string userName = null, string userEmail = null, string password = null, string _remoteBranchSync = null, int transactionTimeout = 10)
         {
             _transactionTimeout = transactionTimeout;
             _logger = LogManager.GetCurrentClassLogger();
-            
+
+            _remoteName = string.IsNullOrEmpty(remoteName) ? null : remoteName;
             _remoteUrl = string.IsNullOrEmpty(remoteUrl) ? null : remoteUrl;
             _userName = string.IsNullOrEmpty(userName) ? null : userName;
+            _remoteBranchesToSync = string.IsNullOrEmpty(_remoteBranchSync) ? new BranchSync[0] : _remoteBranchSync.Split(',')
+                                                                                                                   .Select(i => i.ToLower().Trim())
+                                                                                                                   .Select(branchName => new BranchSync { 
+                                                                                                                        BranchName = branchName.Replace("+", ""),
+                                                                                                                        ForcePush = branchName.Contains("+")
+                                                                                                                   })
+                                                                                                                   .ToArray();
             userEmail = string.IsNullOrEmpty(userEmail) ? null : userEmail;
             password = string.IsNullOrEmpty(password) ? null : password;
 
@@ -59,18 +74,24 @@ namespace Appy.GitDb.Local
                 
             _repo = new Repository(path);
 
+            
             if (!string.IsNullOrEmpty(_remoteUrl))
             {
                 _pushOptions = new PushOptions { CredentialsProvider = credentials };
-                
-                if(_repo.Network.Remotes["origin"] != null)
-                    _repo.Network.Remotes.Remove("origin");
 
-                _repo.Network.Remotes.Add("origin", _remoteUrl);
+                if (_repo.Network.Remotes[remoteName] != null)
+                {
+                    if (_repo.Network.Remotes[remoteName].Url != _remoteUrl)
+                        throw new Exception("Remote URL has changed. Due to bug it cannot be replaced automatically. Please remove the remote manually and restart the git service");
+                }
+                else
+                    _repo.Network.Remotes.Add(remoteName, _remoteUrl);
+                    
                 _repo.Branches
-                     .Select(b => b.FriendlyName)
-                     .ToList()
-                     .ForEach(push);
+                        .Where(b => b.IsRemote == false)
+                        .Select(b => b.FriendlyName)
+                        .ToList()
+                        .ForEach(push);
             }
             
             if (!_repo.Branches.Any())
@@ -137,7 +158,7 @@ namespace Appy.GitDb.Local
         }
 
         public Task<string> Get(string branch, string key) => 
-            Task.FromResult((_repo.Branches[branch].Tip[key]?.Target as Blob)?.GetContentText());
+            Task.FromResult((_repo.Branches[branch].Tip[backwardCompatKey(key)]?.Target as Blob)?.GetContentText());
 
         public async Task<T> Get<T>(string branch, string key) where T : class =>
             (await Get(branch, key))?.As<T>();
@@ -148,7 +169,7 @@ namespace Appy.GitDb.Local
 
         public Task<IReadOnlyCollection<string>> GetFiles(string branch, string key) =>
             Task.FromResult((IReadOnlyCollection<string>) (
-                (_repo.Branches[branch]?.Tip[key]?.Target as Tree)?
+                (_repo.Branches[branch]?.Tip[backwardCompatKey(key)]?.Target as Tree)?
                       .Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
                       .Select(entry => entry.Target)
                       .Cast<Blob>()
@@ -156,12 +177,18 @@ namespace Appy.GitDb.Local
                       .ToList() ?? 
                 new List<string>()));
 
+        string backwardCompatKey(string key) =>
+            key?.Replace("\\", "/");
+
+        string backwardCompatKeyOut(string key) =>
+            key?.Replace("/", "\\");
+
         public async Task<PagedFiles<T>> GetFilesPaged<T>(string branch, string key, int start, int pageSize) => 
             (await GetFilesPaged(branch, key, start, pageSize)).As<T>();
 
         public Task<PagedFiles<string>> GetFilesPaged(string branch, string key, int start, int pageSize)
         {
-            var allBlobs = (_repo.Branches[branch]?.Tip[key]?.Target as Tree)?
+            var allBlobs = (_repo.Branches[branch]?.Tip[backwardCompatKey(key)]?.Target as Tree)?
                                  .Where(entry => entry.TargetType == TreeEntryTargetType.Blob)
                                  .Select(entry => entry.Target)
                                  .Cast<Blob>()
@@ -201,7 +228,7 @@ namespace Appy.GitDb.Local
             lock (getLock(branch))
             {
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
-                addBlobToTree(document.Key, blob, tree);
+                addBlobToTree(backwardCompatKey(document.Key), blob, tree);
                 var sha = commitTree(branch, tree, getSignature(author), message);
                 _logger.Trace($"Added {document.Key} on branch {branch} with commit {sha}");
                 push(branch);
@@ -218,7 +245,7 @@ namespace Appy.GitDb.Local
             lock (getLock(branch))
             {
                 var tree = TreeDefinition.From(_repo.Branches[branch].Tip);
-                deleteKeyFromTree(key, tree);
+                deleteKeyFromTree(backwardCompatKey(key), tree);
                 var sha = commitTree(branch, tree, getSignature(author), message);
                 _logger.Info($"Deleted {key} on branch {branch} with commit {sha}");
                 push(branch);
@@ -279,7 +306,7 @@ namespace Appy.GitDb.Local
                         {
                             SourceSha = c.Ours?.Id.Sha,
                             TargetSha = c.Theirs?.Id.Sha,
-                            Path = c.Ours?.Path ?? c.Theirs.Path,
+                            Path = backwardCompatKeyOut(c.Ours?.Path ?? c.Theirs.Path),
                             Type = object.ReferenceEquals(c.Ours, null) || object.ReferenceEquals(c.Theirs, null) ? ConflictType.Remove : ConflictType.Change
                         }).ToList()
                     });
@@ -338,7 +365,7 @@ namespace Appy.GitDb.Local
                         {
                             SourceSha = c.Ours?.Id.Sha,
                             TargetSha = c.Theirs?.Id.Sha,
-                            Path = c.Ours?.Path ?? c.Theirs.Path,
+                            Path = backwardCompatKeyOut(c.Ours?.Path ?? c.Theirs.Path),
                             Type = object.ReferenceEquals(c.Ours, null) || object.ReferenceEquals(c.Theirs, null) ? ConflictType.Remove : ConflictType.Change
                         }).ToList()
                     });
@@ -485,7 +512,7 @@ namespace Appy.GitDb.Local
                     var blob = addBlob(document.Value);
                     if(blob == null)
                         _logger.Warn($"Found a null blob for document with key {document.Value}");
-                    addBlobToTree(document.Key, blob, tree);
+                    addBlobToTree(backwardCompatKey(document.Key), blob, tree);
                     _logger.Trace($"Added blob with key {document.Key} to transaction on {branch}");
                     return Task.CompletedTask;
                 },
@@ -497,7 +524,7 @@ namespace Appy.GitDb.Local
                     {
                         if (item.Blob == null)
                             _logger.Warn($"Found a null blob for document with key {item.Document.Value}");
-                        addBlobToTree(item.Document.Key, item.Blob, tree);
+                        addBlobToTree(backwardCompatKey(item.Document.Key), item.Blob, tree);
                     }
                         
                     
@@ -525,7 +552,7 @@ namespace Appy.GitDb.Local
                 delete: key =>
                 {
                     EnsureTransactionInProgress();
-                    deleteKeyFromTree(key, tree);
+                    deleteKeyFromTree(backwardCompatKey(key), tree);
                     _logger.Trace($"Removed blob with key {key} in transaction  on {branch}");
                     return Task.CompletedTask;
                 },
@@ -534,7 +561,7 @@ namespace Appy.GitDb.Local
                     var keysList = keys.ToList();
                     EnsureTransactionInProgress();
                     foreach (var key in keysList)
-                        deleteKeyFromTree(key, tree);
+                        deleteKeyFromTree(backwardCompatKey(key), tree);
 
                     _logger.Trace($"Removed {keysList.Count} blobs in transaction  on {branch}");
                     return Task.CompletedTask;
@@ -544,16 +571,41 @@ namespace Appy.GitDb.Local
         void push(string branch)
         {
             if (string.IsNullOrEmpty(_remoteUrl)) return;
-
+            var branchSync = _remoteBranchesToSync.FirstOrDefault(bs => bs.BranchName == branch.ToLower());
+            if (branchSync == null)
+            {
+                _logger.Trace($"Not pushing to remote, branch {branch} is not in the list of branches to sync");
+                return;
+            }
+                
             Task.Run(() =>
             {
                 _logger.Trace($"Pushing branch {branch} to {_remoteUrl} with user name {_userName}");
 
                 try
                 {
+                    try
+                    {
+                        if (_repo.Network.Remotes[_remoteName] == null)
+                        {
+                            _repo.Network.Remotes.Add(_remoteName, _remoteUrl);
+                            _logger.Trace($"Added remote {_remoteName} at {_remoteUrl}");
+                        }
+                            
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "Could not add remote");
+                    }
+
+
                     var localBranch = _repo.Branches[branch];
-                    _repo.Branches.Update(localBranch, b => b.Remote = "origin", b => b.UpstreamBranch = localBranch.CanonicalName);
-                    _repo.Network.Push(localBranch, _pushOptions);
+                    _repo.Branches.Update(localBranch, b => b.Remote = _remoteName, b => b.UpstreamBranch = localBranch.CanonicalName);
+                    var refspec = localBranch.CanonicalName;
+                    var remote = _repo.Network.Remotes[_remoteName];
+                    if (branchSync.ForcePush) refspec = "+" + refspec;
+                    _repo.Network.Push(remote, refspec, _pushOptions);
+
                     _logger.Trace($"Pushed branch {branch} to {_remoteUrl} with user name {_userName}");
                 }
                 catch (Exception e)

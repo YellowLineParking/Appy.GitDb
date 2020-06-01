@@ -140,29 +140,32 @@ namespace Appy.GitDb.Watcher
             }
         }
 
+        string backwardCompatKeyOut(string key) =>
+            key?.Replace("/", "\\");
+
         T getBranchChanged<T>(TreeChanges changes, BranchInfo branchInfo) where T : BranchModification, new() => 
             new T
             {
                 Branch = branchInfo,
                 Added = changes.Added.Select(a => new ItemAdded
                 {
-                    Key = a.Path,
+                    Key = backwardCompatKeyOut(a.Path),
                     GetValue = () => getBlobValue(a.Oid)
                 }).ToList(),
                 Modified = changes.Modified.Select(m => new ItemModified
                 {
-                    Key = m.Path,
+                    Key = backwardCompatKeyOut(m.Path),
                     GetValue = () => getBlobValue(m.Oid),
                     GetOldValue = () => getBlobValue(m.OldOid)
                 }).ToList(),
                 Renamed = changes.Renamed.Select(r => new ItemRenamed
                 {
-                    Key = r.Path,
+                    Key = backwardCompatKeyOut(r.Path),
                     GetValue = () => getBlobValue(r.Oid),
                     GetOldValue = () => getBlobValue(r.OldOid),
-                    OldKey = r.OldPath
+                    OldKey = backwardCompatKeyOut(r.OldPath)
                 }).ToList(),
-                Deleted = changes.Deleted.Select(d => new ItemDeleted {Key = d.Path, GetValue = () => getBlobValue(d.OldOid)}).ToList()
+                Deleted = changes.Deleted.Select(d => new ItemDeleted {Key = backwardCompatKeyOut(d.Path), GetValue = () => getBlobValue(d.OldOid)}).ToList()
             };
 
         string getBlobValue(ObjectId objectId) =>
