@@ -62,7 +62,7 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void RebaseShouldSuccedWithValidInfo() =>
-            _rebaseResult.ShouldBeEquivalentTo(RebaseInfo.Succeeded("test", "master", Repo.Branches["test"].Tip.Sha));
+            _rebaseResult.Should().BeEquivalentTo(RebaseInfo.Succeeded("test", "master", Repo.Branches["test"].Tip.Sha));
 
         [Fact]
         public async Task AddsTheCorrectFilesToTheBranch() =>
@@ -100,7 +100,7 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void RebaseShouldSuccedWithValidInfo() =>
-            _rebaseResult.ShouldBeEquivalentTo(RebaseInfo.Succeeded("test", "master", string.Empty));
+            _rebaseResult.Should().BeEquivalentTo(RebaseInfo.Succeeded("test", "master", string.Empty));
 
         [Fact]
         public void DoesNotCreateACommitOnSourceBranch() =>
@@ -152,7 +152,7 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _rebaseResult.ShouldBeEquivalentTo(new RebaseInfo
+            _rebaseResult.Should().BeEquivalentTo(new RebaseInfo
             {
                 Message = "Could not rebase test onto master because of conflicts. Please merge manually",
                 SourceBranch = "test",
@@ -210,7 +210,7 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _rebaseResult.ShouldBeEquivalentTo(new RebaseInfo
+            _rebaseResult.Should().BeEquivalentTo(new RebaseInfo
             {
                 Message = "Could not rebase test onto master because of conflicts. Please merge manually",
                 SourceBranch = "test",

@@ -77,11 +77,11 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void FirstMergesShouldSuccedWithValidInfo() => 
-            _firstMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test2", "master", _commitBeforeSecondMerge));
+            _firstMergeResult.Should().BeEquivalentTo(MergeInfo.Succeeded("test2", "master", _commitBeforeSecondMerge));
 
         [Fact]
         public void SecondMergeShouldSuccedWithValidInfo() => 
-            _secondMergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test", "master", _commitAfterSecondMerge));
+            _secondMergeResult.Should().BeEquivalentTo(MergeInfo.Succeeded("test", "master", _commitAfterSecondMerge));
 
         [Fact]
         public async Task AddsTheCorrectFilesToMaster() =>
@@ -126,7 +126,7 @@ namespace Appy.GitDb.Tests
 
         [Fact]
         public void MergeShouldSuccedWithValidInfo() =>
-            _mergeResult.ShouldBeEquivalentTo(MergeInfo.Succeeded("test", "master", string.Empty));
+            _mergeResult.Should().BeEquivalentTo(MergeInfo.Succeeded("test", "master", string.Empty));
 
         [Fact]
         public void DoesNotCreateACommitOnMaster() =>
@@ -179,7 +179,7 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _mergeResult.ShouldBeEquivalentTo(new MergeInfo
+            _mergeResult.Should().BeEquivalentTo(new MergeInfo
             {
                 Message = "Could not merge test into master because of conflicts. Please merge manually",
                 SourceBranch = "test",
@@ -236,7 +236,7 @@ namespace Appy.GitDb.Tests
                 c.TargetSha = null;
             });
 
-            _mergeResult.ShouldBeEquivalentTo(new MergeInfo
+            _mergeResult.Should().BeEquivalentTo(new MergeInfo
             {
                 Message = "Could not merge test into master because of conflicts. Please merge manually",
                 SourceBranch = "test",

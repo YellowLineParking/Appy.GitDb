@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
+using System.Net;
 using Appy.GitDb.Core.Interfaces;
 using Appy.GitDb.Core.Model;
 using Newtonsoft.Json;
@@ -34,7 +34,7 @@ namespace Appy.GitDb.Remote
 
 
         string urlEncode(string value) =>
-            HttpUtility.UrlEncode(value);
+            WebUtility.UrlEncode(value);
 
         public Task<string> Get(string branch, string key) =>
             _client.GetAsync<string>($"/{branch}/document/{urlEncode(key)}");
