@@ -50,7 +50,7 @@ namespace Appy.GitDb.Tests.Utils
             
             await Subject.Start(new List<BranchInfo>());
             await Because();
-            Thread.Sleep(500);
+            Thread.Sleep(2500);
         }
 
         public Task DisposeAsync()

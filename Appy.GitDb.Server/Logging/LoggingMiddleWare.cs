@@ -1,84 +1,65 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Owin;
+using Microsoft.AspNetCore.Http;
 using NLog;
 
 namespace Appy.GitDb.Server.Logging
 {
-    public class LoggingMiddleware : OwinMiddleware
+    public class LoggingMiddleware : IMiddleware
     {
-        public static Logger Logger;
-        public LoggingMiddleware(OwinMiddleware next) : base(next){ }
-        public override async Task Invoke(IOwinContext context)
+        public static Logger Logger = LogManager.GetLogger("server-log");
+
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var correlationid = context.Request.Headers["X-FORWARD-CORRELATIONID"] ?? Guid.NewGuid().ToString("N");
+            var correlationId = context.Request.Headers["X-FORWARD-CORRELATIONID"].FirstOrDefault()
+                                ?? Guid.NewGuid().ToString("N");
 
-            LogContext.SetCorrelationId(correlationid);
+            LogContext.SetCorrelationId(correlationId);
+            context.Response.Headers["correlationid"] = correlationId;
 
-            context.Response.OnSendingHeaders(state =>
+            var watch = Stopwatch.StartNew();
+            Exception caughtException = null;
+
+            try
             {
-                var ctx = state as IOwinContext;
-                if (ctx == null) return;
-                if (!ctx.Response.Headers.ContainsKey("correlationid"))
-                    ctx.Response.Headers.Add("correlationid", new[] { correlationid });
-            }, context);
-
-            var watch = new Stopwatch();
-            watch.Start();
-
-            await Next.Invoke(context);
-
-            watch.Stop();
-
-            var identity = context.Request.User?.Identity;
-            var userName = identity?.Name;
-            var user = !string.IsNullOrEmpty(userName)
-                ? userName
-                : "(anonymous)";
-
-            var exception = context.Environment.ContainsKey("exception")
-                ? (Exception)context.Environment["exception"]
-                : null;
-
-            LogLevel level;
-            if (exception != null || context.Response.StatusCode >= 500)
-                level = LogLevel.Error;
-            else if (context.Response.StatusCode >= 400)
-                level = LogLevel.Warn;
-            else
-                level = LogLevel.Trace;
-           
-
-            Logger.Log(new LogEventInfo
+                await next(context);
+            }
+            catch (Exception ex)
             {
-                Level = level,
-                Exception = exception,
-                LoggerName = "http-log",
-                Properties =
+                caughtException = ex;
+                throw;
+            }
+            finally
+            {
+                watch.Stop();
+                var userName = context.User?.Identity?.Name ?? "(anonymous)";
+
+                var level = caughtException != null || context.Response.StatusCode >= 500
+                    ? LogLevel.Error
+                    : context.Response.StatusCode >= 400
+                        ? LogLevel.Warn
+                        : LogLevel.Trace;
+
+                Logger.Log(new LogEventInfo
                 {
-                    { "user", user},
-                    { "method", context.Request.Method},
-                    { "url", context.Request.Uri.AbsolutePath},
-                    { "querystring", context.Request.Uri.Query},
-                    { "request-headers", toLogString(context.Request.Headers)},
-                    { "response-headers", toLogString(context.Response.Headers) },
-                    { "statuscode", context.Response.StatusCode },
-                    { "reason", context.Response.ReasonPhrase },
-                    { "duration", watch.Elapsed.TotalMilliseconds },
-                    { "useragent", getValue(context.Request.Headers, "User-Agent") },
-                    { "host", context.Request.Uri.Host }
-                }
-            });
+                    Level = level,
+                    Exception = caughtException,
+                    LoggerName = "http-log",
+                    Properties =
+                    {
+                        { "user", userName },
+                        { "method", context.Request.Method },
+                        { "url", context.Request.Path.Value },
+                        { "querystring", context.Request.QueryString.Value },
+                        { "statuscode", context.Response.StatusCode },
+                        { "duration", watch.Elapsed.TotalMilliseconds },
+                        { "useragent", context.Request.Headers["User-Agent"].FirstOrDefault() ?? string.Empty },
+                        { "host", context.Request.Host.Value }
+                    }
+                });
+            }
         }
-
-        static string toLogString(IHeaderDictionary headers) =>
-            string.Join("\n", headers.Select(kv => kv.Key + ": " + string.Join(" ", kv.Value)));
-
-        static string getValue(IHeaderDictionary headers, string key) =>
-            headers.ContainsKey(key)
-                ? string.Join(" ", headers[key])
-                : string.Empty;
     }
 }

@@ -36,7 +36,7 @@ namespace Appy.GitDb.Tests
         public void CreatesASingleCommitWithAllKeys() =>
             Repo.Branches[Branch].Tip.Tree
                 .Select(e => new Document { Key = e.Path, Value = ((Blob)e.Target).GetContentText() })
-                .ShouldBeEquivalentTo(_docs);
+                .Should().BeEquivalentTo(_docs);
     }
 
     public class DeletingItemsFromATransaction : WithRepo

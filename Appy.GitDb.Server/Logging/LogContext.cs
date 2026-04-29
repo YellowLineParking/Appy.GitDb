@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.Remoting.Messaging;
+using System;
+using System.Threading;
 using NLog;
 
 namespace Appy.GitDb.Server.Logging
@@ -7,6 +7,7 @@ namespace Appy.GitDb.Server.Logging
     public class LogContext : IDisposable
     {
         const string CorrelationIdKey = "lctx:correlationid";
+        static readonly AsyncLocal<string> _correlationId = new();
 
         public string CorrelationId { get; }
 
@@ -21,19 +22,17 @@ namespace Appy.GitDb.Server.Logging
 
         public static void SetCorrelationId(string correlationId)
         {
-            CallContext.LogicalSetData(CorrelationIdKey, correlationId);
+            _correlationId.Value = correlationId;
             MappedDiagnosticsLogicalContext.Set(CorrelationIdKey, correlationId);
         }
 
         public static void Clear()
         {
-            CallContext.LogicalSetData(CorrelationIdKey, null);
+            _correlationId.Value = null;
             MappedDiagnosticsLogicalContext.Clear();
         }
 
-        public static string GetCorrelationId() => get(CorrelationIdKey);
-
-        static string get(string key) => 
-            CallContext.LogicalGetData(key) as string ?? MappedDiagnosticsLogicalContext.Get(key);
+        public static string GetCorrelationId() =>
+            _correlationId.Value ?? MappedDiagnosticsLogicalContext.Get(CorrelationIdKey);
     }
 }
